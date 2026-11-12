@@ -1,7 +1,7 @@
 # E01-S02 Backend skeleton and layering
 
 - **Epic:** E01 Foundation
-- **Status:** Ready
+- **Status:** Done
 - **Depends on:** E01-S01, E01-S09
 - **Decisions:** D-018, D-024, D-025, D-026, D-050
 - **Flows:** FLOWS.md 1
@@ -58,3 +58,12 @@ Database (E01-S03), error response shape and OpenAPI export (E01-S06), authentic
 ## Open questions
 
 None.
+
+## Notes
+
+- Criteria 1, 3, 4 and 5 are covered by tests and the local checks (`tests/api/test_health.py`, `tests/architecture/test_layers.py`, `tests/unit/test_settings.py`).
+- Criterion 2 was checked by hand: `TWIN_PORT=8765 uv run twin`, then `curl localhost:8765/api/health` returned `{"status":"ok"}`.
+- The old `tests/test_smoke.py` was removed: `main()` now starts a server, so the test that called it no longer fits. `tests/unit/test_settings.py` checks `main()` by replacing `uvicorn.run`.
+- `pytest` runs with `--import-mode=importlib` so test files in different folders can share a name.
+- `httpx` brings a Starlette deprecation warning that points to `httpx2`. The story names `httpx`, so it stays; revisit if the warning becomes an error.
+- Settings read the repository-root `.env` (the same file E01-S03's Docker Compose will use) and ignore variables that are not `TWIN_`-prefixed.
