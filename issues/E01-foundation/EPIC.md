@@ -34,7 +34,7 @@ flowchart LR
 | [E01-S06](E01-S06-api-contract.md) | API contract and typed client | E01-S02, E01-S04 | Draft (needs D-053) |
 | [E01-S07](E01-S07-test-harness.md) | Test and lint harness | E01-S03, E01-S04 | Ready |
 | [E01-S08](E01-S08-ci-devcontainer.md) | CI and dev container | None | Done |
-| [E01-S09](E01-S09-restructure-layout.md) | Restructure into backend/ and frontend/ | None | Draft (needs D-050) |
+| [E01-S09](E01-S09-restructure-layout.md) | Restructure into backend/ and frontend/ | None | Done |
 
 ## Decisions made while planning (2026-11-12)
 

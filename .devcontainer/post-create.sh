@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-uv sync
+(cd backend && uv sync)
 
-if [ -f web/package.json ]; then
-  (cd web && npm ci)
+if [ -f frontend/package.json ]; then
+  (cd frontend && npm ci)
 fi

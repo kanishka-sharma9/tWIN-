@@ -1,6 +1,6 @@
 import pytest
 
-from multiid_folder_mgmt import main
+from twin import main
 
 
 def test_main_runs(capsys: pytest.CaptureFixture[str]) -> None:
