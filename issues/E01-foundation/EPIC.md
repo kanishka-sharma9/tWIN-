@@ -31,7 +31,7 @@ flowchart LR
 | [E01-S03](E01-S03-database.md) | PostgreSQL and migrations | E01-S02 | Done |
 | [E01-S04](E01-S04-frontend-skeleton.md) | Frontend skeleton | E01-S01, E01-S09 | Done (browser check pending) |
 | [E01-S05](E01-S05-theme-tokens.md) | Theme tokens | E01-S04 | Done (browser checks pending) |
-| [E01-S06](E01-S06-api-contract.md) | API contract and typed client | E01-S02, E01-S04 | Draft (needs D-053) |
+| [E01-S06](E01-S06-api-contract.md) | API contract and typed client | E01-S02, E01-S04 | Done (browser check pending) |
 | [E01-S07](E01-S07-test-harness.md) | Test and lint harness | E01-S03, E01-S04 | Ready |
 | [E01-S08](E01-S08-ci-devcontainer.md) | CI and dev container | None | Done |
 | [E01-S09](E01-S09-restructure-layout.md) | Restructure into backend/ and frontend/ | None | Done |
