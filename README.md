@@ -1,6 +1,42 @@
 # tWIN!!
 
-A web-first file explorer in which every file has a Name and an Alter. See `DECISIONS.md` for the design and `issues/` for the backlog.
+A web-first, fully responsive file explorer in which every file has a **Name** and an **Alter** (a second, user-typed name). The (name, alter) pair must be unique across a user's vault, ignoring case; the folder plays no part. Each account has one private vault.
+
+## Status
+
+Planning is done and implementation has just started. Epic E01 (Foundation) is under way: the repository layout and the developer environment are in place, and the backend and frontend skeletons come next. There is no runnable app yet.
+
+## Planned stack
+
+- **Backend:** Python 3.14, FastAPI and PostgreSQL (Docker Compose), structured as ports and adapters, with file bytes stored in PostgreSQL and JWT login.
+- **Frontend:** Vite, React, TypeScript, Tailwind and shadcn/ui.
+- **Tooling:** [uv](https://docs.astral.sh/uv/), Ruff, ty, mypy and pytest for Python; Biome, ESLint and Vitest for the frontend; GitHub Actions for CI.
+
+## Repository layout
+
+| Path | Contents |
+|---|---|
+| `backend/` | Python project (package `twin`, tests, `pyproject.toml`, `uv.lock`) |
+| `frontend/` | Web app (arrives with E01-S04); holds `.nvmrc` for now |
+| `scripts/` | Helper scripts, such as `check-env.sh` |
+| `issues/` | Epics and stories, with the definition of done |
+| `DECISIONS.md` | Every product and technical decision, with the options weighed |
+| `FLOWS.md` | User and system flows (Mermaid) |
+| `.github/`, `.devcontainer/` | CI workflow and dev container |
+
+## Everyday commands
+
+Run from `backend/`:
+
+```bash
+uv sync                  # install the project
+uv run twin              # run the placeholder entry point
+uv run ruff format       # format
+uv run ruff check        # lint
+uv run ty check          # type check
+uv run mypy              # strict type check
+uv run pytest            # tests
+```
 
 ## Setup
 
