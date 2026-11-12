@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Status
 
-Planning is done; implementation has not started. The code is still the `uv init --package` scaffold: a FastAPI app (`twin.bootstrap.create_app`) with `GET /api/health`, the layer folders under `backend/src/twin/`, and an architecture test that enforces the import rules (E01-S02). No database yet and no frontend. The Python checks, CI (`.github/workflows/ci.yml`) and dev container (`.devcontainer/`) are in place (E01-S08, D-041). Update this file as the stories in `issues/E01-foundation/` land.
+Planning is done; implementation has not started. The code is still the `uv init --package` scaffold: a FastAPI app (`twin.bootstrap.create_app`) with `GET /api/health`, the layer folders under `backend/src/twin/`, and an architecture test that enforces the import rules (E01-S02). A PostgreSQL 18 service in `docker-compose.yml`, SQLAlchemy and Alembic with an empty baseline migration, and `/api/health` reporting `database` up or down (E01-S03). No frontend yet. The Python checks, CI (`.github/workflows/ci.yml`) and dev container (`.devcontainer/`) are in place (E01-S08, D-041). Update this file as the stories in `issues/E01-foundation/` land.
 
 ## What is being built
 
@@ -26,6 +26,9 @@ The project is managed with [uv](https://docs.astral.sh/uv/) (build backend `uv_
 
 ```bash
 uv sync                      # create .venv and install the project
+docker compose up -d db      # from the repo root: start PostgreSQL (needs .env, copy .env.example)
+uv run alembic upgrade head  # apply migrations
+uv run alembic revision -m "message"   # new migration (write by hand; review any autogenerate)
 uv run twin                  # start the API on TWIN_HOST:TWIN_PORT (default 127.0.0.1:8000)
 uv add <package>             # add a runtime dependency
 uv add --dev <package>       # add a dev dependency
@@ -54,5 +57,5 @@ wsl -d Ubuntu -e bash -lc 'cd ~/MultiID-folder-mgmt/backend && uv run twin'
 ## Layout
 
 - `backend/src/` layout: the importable package, the distribution and the console script are all `twin` (D-050).
-- Layers (`domain`, `application`, `adapters`, `bootstrap`) and their import rules are described in D-024 and enforced by `tests/architecture/test_layers.py`. Only `bootstrap.py` wires adapters. Configuration comes from `TWIN_`-prefixed environment variables or the root `.env` (see `.env.example`).
+- Layers (`domain`, `application`, `adapters`, `bootstrap`) and their import rules are described in D-024 and enforced by `tests/architecture/test_layers.py`. Only `bootstrap.py` wires adapters. Configuration comes from `TWIN_`-prefixed environment variables or the root `.env` (see `.env.example`). Tests use the `<database>_test` database on the same server (created and migrated by a session fixture in `tests/conftest.py`); they never touch the development database, so the `db` container must be running for `uv run pytest`.
 - The console script is wired in `pyproject.toml` under `[project.scripts]` as `twin:main`, so `main()` must stay importable from the package root if the implementation moves into submodules.
