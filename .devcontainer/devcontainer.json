@@ -1,0 +1,49 @@
+{
+  "name": "MultiID folder mgmt",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+  "features": {
+    // Keep in step with the uv_build range in pyproject.toml (uv 0.13 or newer fails its build-system check).
+    "ghcr.io/devcontainers-extra/features/uv:1": { "version": "0.12.21" },
+    // Keep in step with .nvmrc.
+    "ghcr.io/devcontainers/features/node:2": { "version": "26" },
+    // Runs its own Docker daemon so `docker compose up` for PostgreSQL works as it does in WSL.
+    "ghcr.io/devcontainers/features/docker-in-docker:4": {}
+  },
+  "containerEnv": {
+    // Kept outside the bind-mounted workspace so it never clashes with the .venv made in WSL.
+    "UV_PROJECT_ENVIRONMENT": "/home/vscode/.venv",
+    "UV_LINK_MODE": "copy"
+  },
+  "remoteUser": "vscode",
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "forwardPorts": [8000, 5173],
+  "portsAttributes": {
+    "8000": { "label": "API" },
+    "5173": { "label": "Web" }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "charliermarsh.ruff",
+        "astral-sh.ty",
+        "ms-python.mypy-type-checker",
+        "biomejs.biome",
+        "dbaeumer.vscode-eslint"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/home/vscode/.venv/bin/python",
+        // ty provides the Python language server, so Pylance's is turned off.
+        "python.languageServer": "None",
+        "editor.formatOnSave": true,
+        "[python]": {
+          "editor.defaultFormatter": "charliermarsh.ruff",
+          "editor.codeActionsOnSave": { "source.organizeImports.ruff": "explicit" }
+        },
+        "[typescript][typescriptreact][javascript][json][jsonc][css]": {
+          "editor.defaultFormatter": "biomejs.biome"
+        }
+      }
+    }
+  }
+}
