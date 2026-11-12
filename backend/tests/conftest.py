@@ -77,3 +77,13 @@ def db_session(test_database_url: str) -> Iterator[Session]:
         transaction.rollback()
         connection.close()
         engine.dispose()
+
+
+def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
+    """Mark tests by folder, so `pytest -m unit` runs the fast set."""
+    for item in items:
+        parts = item.path.parts
+        if "unit" in parts:
+            item.add_marker(pytest.mark.unit)
+        elif "api" in parts:
+            item.add_marker(pytest.mark.api)
