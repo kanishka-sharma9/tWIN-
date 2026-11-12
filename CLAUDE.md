@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Status
 
-Planning is done; implementation has not started. The code is still the `uv init --package` scaffold: a placeholder `main()` in `backend/src/twin/__init__.py`, an empty README, no runtime dependencies and no frontend. The Python checks, CI (`.github/workflows/ci.yml`) and dev container (`.devcontainer/`) are in place (E01-S08, D-041). Update this file as the stories in `issues/E01-foundation/` land.
+Planning is done; implementation has not started. The code is still the `uv init --package` scaffold: a FastAPI app (`twin.bootstrap.create_app`) with `GET /api/health`, the layer folders under `backend/src/twin/`, and an architecture test that enforces the import rules (E01-S02). No database yet and no frontend. The Python checks, CI (`.github/workflows/ci.yml`) and dev container (`.devcontainer/`) are in place (E01-S08, D-041). Update this file as the stories in `issues/E01-foundation/` land.
 
 ## What is being built
 
@@ -26,7 +26,7 @@ The project is managed with [uv](https://docs.astral.sh/uv/) (build backend `uv_
 
 ```bash
 uv sync                      # create .venv and install the project
-uv run twin                  # run the CLI entry point
+uv run twin                  # start the API on TWIN_HOST:TWIN_PORT (default 127.0.0.1:8000)
 uv add <package>             # add a runtime dependency
 uv add --dev <package>       # add a dev dependency
 uv build                     # build sdist + wheel into dist/
@@ -40,7 +40,7 @@ uv run ruff check --fix      # lint
 uv run ty check              # type check, fast; warnings fail
 uv run mypy                  # type check, strict
 uv run pytest                # all tests
-uv run pytest tests/test_smoke.py::test_main_runs   # one test
+uv run pytest tests/api/test_health.py::test_health_ok   # one test
 ```
 
 Frontend (D-038; arrives with E01-S04 in `frontend/`): Biome formats and lints, ESLint holds only the type-aware typescript-eslint and react-hooks rules, and `tsc` type-checks. CI's web job runs `npx biome ci`, `npx eslint .`, `npm run typecheck`, `npm test` and `npm run build` inside `frontend/`, so `package.json` must define the `typecheck`, `test` and `build` scripts. Node is pinned in `frontend/.nvmrc`; the dev container's Node feature version must match it.
@@ -54,4 +54,5 @@ wsl -d Ubuntu -e bash -lc 'cd ~/MultiID-folder-mgmt/backend && uv run twin'
 ## Layout
 
 - `backend/src/` layout: the importable package, the distribution and the console script are all `twin` (D-050).
+- Layers (`domain`, `application`, `adapters`, `bootstrap`) and their import rules are described in D-024 and enforced by `tests/architecture/test_layers.py`. Only `bootstrap.py` wires adapters. Configuration comes from `TWIN_`-prefixed environment variables or the root `.env` (see `.env.example`).
 - The console script is wired in `pyproject.toml` under `[project.scripts]` as `twin:main`, so `main()` must stay importable from the package root if the implementation moves into submodules.
