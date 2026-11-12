@@ -1,9 +1,9 @@
 # E01-S09 Restructure into backend/ and frontend/
 
 - **Epic:** E01 Foundation
-- **Status:** Draft (spec complete; waits for D-050 to be confirmed)
+- **Status:** Done
 - **Depends on:** None
-- **Decisions:** D-025, D-041, D-047, D-050 (Proposed)
+- **Decisions:** D-025, D-041, D-047, D-050
 - **Flows:** None
 
 ## Goal
@@ -61,4 +61,9 @@ Run `git` and `uv` inside WSL (CLAUDE.md): `wsl -d Ubuntu -e bash -lc 'cd ~/Mult
 
 ## Open questions
 
-- Confirm `twin` as the package and script name (D-050). If another name is chosen, only the spelling in scope item 2 changes.
+None. The owner confirmed `twin` (D-050) on 2026-11-12.
+
+## Notes
+
+- Criteria 1, 2, 4 and 5 verified locally from `backend/`. Criterion 3 is not checked until the CI run on the pull request. Criterion 6 is not checked: Docker Desktop's WSL integration is off (D-020).
+- `uv_build` needs the `readme` file to exist, so a short `backend/README.md` was added. The root `README.md` is still empty.
