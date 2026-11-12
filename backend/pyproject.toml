@@ -32,6 +32,10 @@ dev = [
     "ty>=0.0.100",
 ]
 
+[tool.ruff]
+# Keeps backend/alembic/ (migrations) from being mistaken for the first-party package.
+src = ["src"]
+
 [tool.ruff.lint]
 extend-select = [
     "ASYNC", # flake8-async
