@@ -1,5 +1,5 @@
 import createClient from "openapi-fetch";
-import { type ApiError, apiErrorFromResponse, networkError } from "./errors";
+import { apiErrorFromResponse, networkError } from "./errors";
 import type { paths } from "./schema";
 
 // The access token lives in memory only, never in localStorage (D-029).
@@ -77,14 +77,16 @@ const baseUrl =
 
 export const api = createClient<paths>({ baseUrl, fetch: authedFetch });
 
-/** Resolves with the data, or throws an ApiError built from the error response. */
-export async function unwrap<T>(
-	result: Promise<{ data?: T; error?: unknown; response: Response }>,
-): Promise<T> {
-	const { data, error, response } = await result;
-	if (error !== undefined || !response.ok) {
-		const apiError: ApiError = await apiErrorFromResponse(response, error);
-		throw apiError;
+type Result = { error?: unknown; response: Response };
+type Data<R extends Result> = Extract<R, { data: unknown }>["data"];
+
+/** Resolves with the typed data, or throws an ApiError built from the error response. */
+export async function unwrap<R extends Result>(
+	result: Promise<R>,
+): Promise<Data<R>> {
+	const outcome = await result;
+	if (outcome.error !== undefined || !outcome.response.ok) {
+		throw await apiErrorFromResponse(outcome.response, outcome.error);
 	}
-	return data as T;
+	return (outcome as unknown as { data: Data<R> }).data;
 }
