@@ -17,13 +17,18 @@ jobs:
   python:
     name: Python
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
     steps:
       - uses: actions/checkout@v7
 
-      # Installs uv; `uv sync` then fetches the Python pinned in .python-version.
+      # Installs uv; `uv sync` then fetches the Python pinned in backend/.python-version.
       - uses: astral-sh/setup-uv@v10
         with:
           enable-cache: true
+          working-directory: backend
+          cache-dependency-glob: backend/uv.lock
 
       - run: uv sync --locked
       - run: uv run ruff format --check
@@ -37,26 +42,26 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: web
+        working-directory: frontend
     steps:
       - uses: actions/checkout@v7
 
-      # web/ arrives with E01-S04; until then this job passes without doing anything.
+      # frontend/ arrives with E01-S04; until then this job passes without doing anything.
       - id: detect
         working-directory: .
         run: |
-          if [ -f web/package.json ]; then
+          if [ -f frontend/package.json ]; then
             echo "present=true" >> "$GITHUB_OUTPUT"
           else
-            echo "::notice::web/package.json not found; skipping frontend checks"
+            echo "::notice::frontend/package.json not found; skipping frontend checks"
           fi
 
       - if: steps.detect.outputs.present == 'true'
         uses: actions/setup-node@v7
         with:
-          node-version-file: .nvmrc
+          node-version-file: frontend/.nvmrc
           cache: npm
-          cache-dependency-path: web/package-lock.json
+          cache-dependency-path: frontend/package-lock.json
 
       - if: steps.detect.outputs.present == 'true'
         run: npm ci
