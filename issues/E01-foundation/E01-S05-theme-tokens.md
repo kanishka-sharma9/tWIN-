@@ -1,7 +1,7 @@
 # E01-S05 Theme tokens
 
 - **Epic:** E01 Foundation
-- **Status:** Draft (spec complete; waits for D-053 to be confirmed and for the navbar check below)
+- **Status:** Done (browser checks pending)
 - **Depends on:** E01-S04
 - **Decisions:** D-013, D-043, D-046, D-052, D-053 (Proposed)
 - **Flows:** None
@@ -66,3 +66,14 @@ Real screens and components beyond the shadcn base (each UI story adds its own),
 
 - Confirm D-053's typeface (Inter) and icon set (lucide), and "single theme".
 - Check the navbar reading above against the reference image.
+
+## Notes
+
+- The two open questions were not put to the owner (instruction: proceed without questions). D-053 (Inter, lucide, single theme) was built as proposed and the navbar was read as a rose-filled bar with oxblood content, as the story suggests. D-053 stays **Proposed** in `DECISIONS.md`; if the owner changes it, only `tokens.css` and the font and icon imports change.
+- Interpretation of criterion 4: cyan is never the *text or icon* colour on a rose surface. Oxblood text on a cyan fill (a primary button) is allowed, since the story makes buttons cyan. The test asserts that no pairing puts cyan text on a rose surface and that the navbar and hover content are oxblood.
+- Criterion 1 is checked structurally rather than through jsdom computed styles (jsdom does not resolve `var()` chains): a test asserts every semantic token is a `var()` reference and the identity comes from the three base tokens, so changing one base token recolours the app.
+- Criterion 2: 16 contrast pairings are asserted in `src/styles/tokens.test.ts` and pass. Criterion 3 is the hygiene tests (no colour literals outside `tokens.css`, no built-in colour classes).
+- Criterion 7: no `https://` font URL in source, and `scripts/check-dist.mjs` fails the build if built CSS loads anything from another origin. The Inter files are bundled into `dist/assets`.
+- The `/dev/tokens` route is behind `import.meta.env.DEV`; the build fails if the showcase marker string appears in `dist/`.
+- **Not done:** the Claude in Chrome checks for focus visibility (criterion 5) and for 360 px and 1280 px without horizontal scroll (criterion 6; the Playwright version comes with E01-S07). The browser could not load the WSL dev server. Still to be done by hand at `/dev/tokens`.
+- `frontend/docs/theme.md` holds the usage rules.
