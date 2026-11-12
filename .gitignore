@@ -29,3 +29,6 @@ frontend/dist
 
 # Browser verification evidence (screenshots, videos); for human review only
 .verification/
+
+frontend/e2e/test-results
+frontend/playwright-report
