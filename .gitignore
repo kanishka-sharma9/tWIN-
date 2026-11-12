@@ -15,3 +15,11 @@ _bmad-output
 .claude
 .*_cache
 node_modules
+
+# Project folders
+backend/.venv
+backend/.mypy_cache
+backend/.ruff_cache
+backend/.pytest_cache
+frontend/node_modules
+frontend/dist
