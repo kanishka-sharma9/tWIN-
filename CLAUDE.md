@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Status
 
-Planning is done; implementation has not started. The code is still the `uv init --package` scaffold: a FastAPI app (`twin.bootstrap.create_app`) with `GET /api/health`, the layer folders under `backend/src/twin/`, and an architecture test that enforces the import rules (E01-S02). A PostgreSQL 18 service in `docker-compose.yml`, SQLAlchemy and Alembic with an empty baseline migration, and `/api/health` reporting `database` up or down (E01-S03). A Vite + React + TypeScript app in `frontend/` with a placeholder health page, and CI's web job now runs (E01-S04). One error shape for all API failures and a typed client generated from the OpenAPI schema (E01-S06). The oxblood, rose and cyan theme lives in `frontend/src/styles/tokens.css` (E01-S05); read `frontend/docs/theme.md` before touching colours, and add any new text-on-background pairing to `src/styles/tokens.test.ts`. The Python checks, CI (`.github/workflows/ci.yml`) and dev container (`.devcontainer/`) are in place (E01-S08, D-041). Update this file as the stories in `issues/E01-foundation/` land.
+Epic E01 (Foundation) is built: a FastAPI app with `GET /api/health`, PostgreSQL 18 with Alembic migrations, a Vite + React + TypeScript frontend with the oxblood/rose/cyan theme tokens, one API error shape and a typed client generated from the OpenAPI schema, and test harnesses for pytest, Vitest and Playwright. CI (`.github/workflows/ci.yml`) and the dev container (`.devcontainer/`) are in place. There are no product features yet: accounts start with E02. Update this file as the stories in `issues/` land.
 
 ## What is being built
 
@@ -53,6 +53,23 @@ The checkout lives in the WSL filesystem (`/home/kanis/MultiID-folder-mgmt`). Ru
 ```bash
 wsl -d Ubuntu -e bash -lc 'cd ~/MultiID-folder-mgmt/backend && uv run twin'
 ```
+
+## Test and check commands (E01-S07)
+
+| What | Where | Command |
+|---|---|---|
+| All backend tests | `backend/` | `uv run pytest` |
+| Fast rule tests only (no database) | `backend/` | `uv run pytest -m unit` |
+| One backend test | `backend/` | `uv run pytest tests/api/test_health.py::test_health_ok` |
+| Backend lint and types | `backend/` | `uv run ruff format --check && uv run ruff check && uv run ty check && uv run mypy` |
+| Frontend unit tests | `frontend/` | `npm test` |
+| One frontend test | `frontend/` | `npx vitest run src/pages/Health.test.tsx -t "database down"` |
+| Frontend lint and types | `frontend/` | `npx biome ci && npx eslint . && npm run typecheck` |
+| Browser tests (API and database running) | `frontend/` | `npm run e2e` |
+| Browser tests, starting the database and API too | `frontend/` | `npm run e2e:full` |
+| One browser test, one project | `frontend/` | `npx playwright test e2e/smoke.spec.ts --project=firefox-phone` |
+
+Backend tests that touch the database need the `db` container running (`docker compose up -d db`); `-m unit` does not. Browser tests need a one-time `npx playwright install --with-deps` (it uses `sudo` for system libraries). The six Playwright projects are Chromium, Firefox and WebKit at desktop (1280x800) and phone (390x844) sizes; WebKit stands in for Safari (D-044). Playwright is not run in CI yet (E09-S01, D-041).
 
 ## Layout
 
