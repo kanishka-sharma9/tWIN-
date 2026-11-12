@@ -104,6 +104,16 @@ With the database and API running (see above):
 cd frontend && npm ci && npm run dev   # http://localhost:5173, proxies /api to the API
 ```
 
+## Changing the API
+
+After changing a backend response or request schema, regenerate the frontend types and commit the result:
+
+```bash
+cd frontend && npm run api:types
+```
+
+CI fails when `frontend/src/api/openapi.json` or `schema.d.ts` is out of date.
+
 ## Dev container
 
 As an alternative to the steps above, open the folder in VS Code and choose **Reopen in Container**. It gives the same toolchain (uv, Node 26) with Docker-in-Docker (D-041), so `docker compose up` works inside it.
