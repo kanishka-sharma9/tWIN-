@@ -1,5 +1,5 @@
 // Fails when dist/ holds anything other than static assets (D-016: no server code).
-import { readdirSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { extname, join } from "node:path";
 
 const allowed = new Set([
@@ -19,6 +19,16 @@ function walk(dir) {
 		const path = join(dir, entry.name);
 		if (entry.isDirectory()) walk(path);
 		else if (!allowed.has(extname(entry.name))) bad.push(path);
+		else if (
+			extname(entry.name) === ".js" &&
+			readFileSync(path, "utf8").includes("tWIN-DEV-TOKENS")
+		)
+			bad.push(`${path} (contains the dev-only token showcase)`);
+		else if (
+			extname(entry.name) === ".css" &&
+			/url\((["']?)https?:/.test(readFileSync(path, "utf8"))
+		)
+			bad.push(`${path} (loads a resource from another origin)`);
 	}
 }
 
