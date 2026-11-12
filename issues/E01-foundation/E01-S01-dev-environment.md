@@ -1,7 +1,7 @@
 # E01-S01 Developer environment
 
 - **Epic:** E01 Foundation
-- **Status:** Ready
+- **Status:** Done (criterion 2 pending the owner)
 - **Depends on:** E01-S09 (so the README describes the final layout)
 - **Decisions:** D-020, D-038, D-041
 - **Flows:** None
@@ -40,3 +40,9 @@ Installing PostgreSQL (E01-S03), the frontend toolchain beyond Node (E01-S04), h
 ## Open questions
 
 None.
+
+## Notes
+
+- Criterion 3 is covered by `backend/tests/test_check_env.py` (all good, Node too old, Docker missing).
+- Criterion 1 is not met on this machine yet: `scripts/check-env.sh` correctly fails because WSL still has Node 18. Docker Compose is fine.
+- Criterion 2 (a clean-WSL walkthrough) is manual and still to be done by the owner.

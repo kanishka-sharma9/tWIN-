@@ -26,7 +26,7 @@ flowchart LR
 
 | ID | Story | Depends on | Status |
 |---|---|---|---|
-| [E01-S01](E01-S01-dev-environment.md) | Developer environment | E01-S09 | Ready |
+| [E01-S01](E01-S01-dev-environment.md) | Developer environment | E01-S09 | Done (criterion 2 pending) |
 | [E01-S02](E01-S02-backend-skeleton.md) | Backend skeleton and layering | E01-S01, E01-S09 | Ready |
 | [E01-S03](E01-S03-database.md) | PostgreSQL and migrations | E01-S02 | Ready |
 | [E01-S04](E01-S04-frontend-skeleton.md) | Frontend skeleton | E01-S01, E01-S09 | Ready |
