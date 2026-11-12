@@ -59,7 +59,7 @@ Every product and technical decision for the dual-name file explorer, with the o
 | D-047 | Product name: tWIN!! | Accepted |
 | D-048 | Stories are not sized | Accepted |
 | D-049 | Definition of done | Accepted |
-| D-050 | Python package and script name: twin | Proposed |
+| D-050 | Python package and script name: twin | Accepted |
 | D-051 | Where the version pins live | Accepted |
 | D-052 | How the theme colours are applied | Accepted |
 | D-053 | Typeface, icon set, theme variant and API client libraries | Proposed |
@@ -379,9 +379,11 @@ Every product and technical decision for the dual-name file explorer, with the o
 
 **Decision**
 
-- **CI:** GitHub Actions (`.github/workflows/ci.yml`) runs on pushes to `main` and on pull requests, with one job each for Python and web. The Python job runs `uv sync --locked`, `ruff format --check`, `ruff check`, `ty check`, `mypy` and `pytest`. The web job runs `npm ci`, `biome ci`, `eslint`, `npm run typecheck`, `npm test` and `npm run build`, and does nothing until `web/package.json` exists (E01-S04).
+- **CI:** GitHub Actions (`.github/workflows/ci.yml`) runs on pushes to `main` and on pull requests, with one job each for Python and web. The Python job runs `uv sync --locked`, `ruff format --check`, `ruff check`, `ty check`, `mypy` and `pytest`. The web job runs `npm ci`, `biome ci`, `eslint`, `npm run typecheck`, `npm test` and `npm run build`, and does nothing until `frontend/package.json` exists (E01-S04).
+
+  *Update 2026-11-12 (E01-S09):* the Python job runs from `backend/` and the web job from `frontend/` (earlier text said `web/`).
 - **Dev container:** `.devcontainer/` is built on the `base:ubuntu-24.04` image with features for uv, Node 26 and Docker-in-Docker. Docker-in-Docker lets `docker compose up` for PostgreSQL (D-020) work as it does in WSL. The container's virtualenv lives at `/home/vscode/.venv` (`UV_PROJECT_ENVIRONMENT`), outside the bind-mounted checkout, so it never clashes with the `.venv` made in WSL. Working in WSL directly (E01-S01) stays supported.
-- Versions come from one place each: Python from `.python-version`, Node from `.nvmrc` (the dev container's Node feature has to be kept in step with it by hand), and Python packages from `uv.lock`.
+- Versions come from one place each: Python from `backend/.python-version`, Node from `frontend/.nvmrc` (the dev container's Node feature has to be kept in step with it by hand), and Python packages from `backend/uv.lock`.
 
 **Options considered**
 
@@ -430,7 +432,7 @@ These were first written as proposed defaults on 2026-11-10 and were put to the 
 ```
 backend/
   pyproject.toml  uv.lock
-  src/multiid_folder_mgmt/
+  src/twin/
     domain/          entities, value objects, rules
     application/     use cases and ports
     adapters/
@@ -452,6 +454,8 @@ issues/  DECISIONS.md  FLOWS.md  CLAUDE.md
 - **Python at the root, frontend in `web/`:** nothing moves, and it is what CI and the dev container were first built around.
 
 **Consequences:** the move is story E01-S09 and comes before the other Foundation stories. Until it is done, D-041's workflow, the dev container and CLAUDE.md still describe the old layout (a root `pyproject.toml` and `web/`).
+
+**Update 2026-11-12:** E01-S09 is done. The project files are in `backend/`, the package is `twin` (D-050), and CI, the dev container and CLAUDE.md use the new paths.
 
 ### D-026 Persistence stack
 
@@ -785,7 +789,7 @@ Gaps that no earlier decision covered, put to the owner on 2026-11-11.
 
 **Options considered:** Namesake, Twofold, Doppel, or deciding later.
 
-**Consequences:** the name appears in the app header, the page title and the README. Whether the Python package (`multiid_folder_mgmt`), the console script and the repository are renamed to match is an open question in E01-S09.
+**Consequences:** the name appears in the app header, the page title and the README. The Python package and console script were renamed to `twin` in E01-S09 (D-050); the repository keeps its name.
 
 ### D-048 Stories are not sized
 
@@ -813,7 +817,7 @@ Gaps that no earlier decision covered, put to the owner on 2026-11-11.
 
 ### D-050 Python package and script name: twin
 
-**Status:** Proposed (2026-11-12). The owner chose to rename the package and console script to match tWIN!! (D-047) and to keep the repository name; the spelling `twin` is the proposal.
+**Status:** Accepted on 2026-11-12. The owner chose to rename the package and console script to match tWIN!! (D-047) and to keep the repository name, and confirmed the spelling `twin`.
 
 **Decision:** The importable package becomes `twin`, the distribution becomes `twin`, and the console script becomes `twin` (`uv run twin`). Environment variables use the prefix `TWIN_`. The repository keeps its name.
 
