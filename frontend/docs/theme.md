@@ -2,10 +2,10 @@
 
 The identity is three colours (D-013, D-052). One theme only (D-053): there is no light variant and no switch.
 
-| Role | Colour |
-|---|---|
-| Page and panel backgrounds | Oxblood `#4A0E1B` |
-| Text, the navbar and hover highlights | Dusty rose `#E3B5AE` |
+| Role                                                                                    | Colour                  |
+| --------------------------------------------------------------------------------------- | ----------------------- |
+| Page and panel backgrounds                                                              | Oxblood `#4A0E1B`       |
+| Text, the navbar and hover highlights                                                   | Dusty rose `#E3B5AE`    |
 | Everything else: buttons, links, icons, focus rings, selection, active states, progress | Electric cyan `#00E5FF` |
 
 ## Rules
@@ -17,19 +17,19 @@ The identity is three colours (D-013, D-052). One theme only (D-053): there is n
 
 ## Which token for what
 
-| Token | Use |
-|---|---|
-| `--background` | Page background |
-| `--foreground` | Body text |
-| `--surface` | Cards, dialogs and panels on the page (oxblood-raised) |
-| `--navbar`, `--navbar-foreground` | The navbar and what is on it |
-| `--hover`, `--hover-foreground` | Hovered rows and menu items |
-| `--primary`, `--primary-foreground` | Buttons, links, icons, active states, progress |
-| `--ring` | Focus ring (2 px, offset 2 px; oxblood inside the navbar) |
-| `--selection` | Selected rows, with a cyan edge (`border-l-primary`) |
-| `--border` | Borders and dividers (decoration, not text) |
-| `--muted-foreground` | Secondary text |
-| `--destructive` | Errors and destructive actions (amber, readable on oxblood) |
+| Token                               | Use                                                         |
+| ----------------------------------- | ----------------------------------------------------------- |
+| `--background`                      | Page background                                             |
+| `--foreground`                      | Body text                                                   |
+| `--surface`                         | Cards, dialogs and panels on the page (oxblood-raised)      |
+| `--navbar`, `--navbar-foreground`   | The navbar and what is on it                                |
+| `--hover`, `--hover-foreground`     | Hovered rows and menu items                                 |
+| `--primary`, `--primary-foreground` | Buttons, links, icons, active states, progress              |
+| `--ring`                            | Focus ring (2 px, offset 2 px; oxblood inside the navbar)   |
+| `--selection`                       | Selected rows, with a cyan edge (`border-l-primary`)        |
+| `--border`                          | Borders and dividers (decoration, not text)                 |
+| `--muted-foreground`                | Secondary text                                              |
+| `--destructive`                     | Errors and destructive actions (amber, readable on oxblood) |
 
 Derived tints in `tokens.css`: `--oxblood-raised`, `--oxblood-sunken` (input wells), `--oxblood-selected`, `--rose-muted`, `--rose-line`, `--cyan-dim` (pressed or disabled cyan).
 
