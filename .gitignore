@@ -23,3 +23,6 @@ backend/.ruff_cache
 backend/.pytest_cache
 frontend/node_modules
 frontend/dist
+
+# Local environment
+.env
