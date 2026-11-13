@@ -99,5 +99,5 @@ As an alternative to the steps above, open the folder in VS Code and choose **Re
 ## Troubleshooting
 
 - **`docker compose version` fails in WSL:** WSL integration is off. Turn it on for Ubuntu in Docker Desktop (step 1), then restart the WSL terminal.
-- **`node --version` prints v18:** you are on WSL's apt Node. Run `nvm install` in `frontend/` and open a new shell.
+- **`node --version` prints v18:** you are on WSL's apt Node. Run `nvm install` in `frontend/`, then `nvm alias default 26` so new shells use it, and open a new shell. `nvm install` alone can leave another version as the default.
 - **`uv: command not found` from a script or `wsl -e`:** uv is added to PATH by your login profile. Run through a login shell: `wsl -d Ubuntu -e bash -lc 'cd ~/MultiID-folder-mgmt/backend && uv run pytest'`.
