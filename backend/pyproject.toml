@@ -8,8 +8,11 @@ authors = [
 ]
 requires-python = ">=3.14"
 dependencies = [
+    "alembic>=1.20.1",
     "fastapi>=0.162.5",
+    "psycopg[binary]>=3.3.8",
     "pydantic-settings>=2.16.2",
+    "sqlalchemy>=2.1.8",
     "uvicorn[standard]>=0.54.0",
 ]
 
@@ -28,6 +31,10 @@ dev = [
     "ruff>=0.17.4",
     "ty>=0.0.100",
 ]
+
+[tool.ruff]
+# Keeps backend/alembic/ (migrations) from being mistaken for the first-party package.
+src = ["src"]
 
 [tool.ruff.lint]
 extend-select = [

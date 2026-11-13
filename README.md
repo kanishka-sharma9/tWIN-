@@ -84,6 +84,18 @@ scripts/check-env.sh
 
 It prints each tool's version and exits non-zero naming the first one that is missing or too old.
 
+## Database
+
+From the repository root, copy `.env.example` to `.env`, then:
+
+```bash
+docker compose up -d db           # PostgreSQL on 127.0.0.1:5432
+cd backend && uv run alembic upgrade head
+uv run twin                       # API on http://127.0.0.1:8000/api/health
+```
+
+The health endpoint answers `{"status": "ok", "database": "up"}`. Tests need the `db` container running; they use a separate `twin_test` database.
+
 ## Dev container
 
 As an alternative to the steps above, open the folder in VS Code and choose **Reopen in Container**. It gives the same toolchain (uv, Node 26) with Docker-in-Docker (D-041), so `docker compose up` works inside it.
