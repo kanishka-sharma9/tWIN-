@@ -15,3 +15,5 @@ class Settings(BaseSettings):
 
     host: str = "127.0.0.1"
     port: int = 8000
+    # postgresql+psycopg://user:password@host:port/database; the default matches .env.example.
+    database_url: str = "postgresql+psycopg://twin:twin@127.0.0.1:5432/twin"
