@@ -1,7 +1,7 @@
 # E01-S04 Frontend skeleton
 
 - **Epic:** E01 Foundation
-- **Status:** Ready
+- **Status:** Done (browser check pending)
 - **Depends on:** E01-S01, E01-S09
 - **Decisions:** D-016, D-017, D-025, D-037, D-038, D-044, D-047
 - **Flows:** None
@@ -44,3 +44,13 @@ Colours and fonts (E01-S05), the typed client and error handling (E01-S06), Play
 ## Open questions
 
 None.
+
+## Notes
+
+- Vite's current template ships TypeScript 7, which typescript-eslint does not support yet, so TypeScript is pinned to `~6.0` (D-054).
+- Biome 2.6's Tailwind class-sorting rule is `nursery/useTailwindSortedClasses` (the story called it `useSortedClasses`). Biome's own ignore-file lookup does not work from `frontend/` (the `.gitignore` is at the repo root), so `biome.json` lists `!dist` and `!node_modules` itself.
+- shadcn/ui is configured by hand (`components.json`, `cn` helper, `@/` alias, Tailwind variables at their defaults) rather than through the interactive CLI; no components were added.
+- The template's demo assets were removed and `public/favicon.svg` replaced with a titled SVG (Biome's accessibility rule rejects an untitled one).
+- Criterion 2 and 4 (local): `npx biome ci`, `npx eslint .`, `npm run typecheck`, `npm test` (4 Vitest tests: ok, database down, network error, API error status) and `npm run build` all pass. CI's web job now runs instead of skipping.
+- Criterion 3: `npm run build` ends with `scripts/check-dist.mjs`, which fails on any file outside html, js, css, svg, ico, png, woff2 or json.
+- Criterion 1: with the API and database up, `curl localhost:5173/api/health` through the Vite proxy returned `{"status":"ok","database":"up"}` and the page title is tWIN!!. The in-browser check through Claude in Chrome (and the 375 px and 1280 px sizes, criterion 5) was **not done**: the browser tab could not load the WSL dev server. Still to be done by hand.
