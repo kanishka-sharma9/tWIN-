@@ -868,6 +868,8 @@ Gaps that no earlier decision covered, put to the owner on 2026-11-11.
 
 **Consequences:** used by E01-S05 and E01-S06, which stay Draft until these are confirmed or changed.
 
+*Update 2026-11-12:* E01-S05 was built on the typeface, icon set and single theme as proposed, and E01-S06 on the API client libraries, under the owner's instruction to proceed without questions. This entry stays Proposed until the owner confirms or changes it.
+
 ### D-054 TypeScript pinned to 6.0 for typescript-eslint
 
 **Status:** Accepted on 2026-11-12 (decided while building E01-S04, under the owner's instruction to proceed without questions)
