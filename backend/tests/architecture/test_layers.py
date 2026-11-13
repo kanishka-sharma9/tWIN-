@@ -1,6 +1,6 @@
-"""Layer rules, checked by walking every module's imports with `ast`."""
+"""Layer rules, checked by reading every module's import statements."""
 
-import ast
+import re
 import sys
 from pathlib import Path
 
@@ -24,24 +24,40 @@ def _matches(name: str, prefixes: tuple[str, ...]) -> bool:
     return any(name == p or name.startswith(f"{p}.") for p in prefixes)
 
 
+# `import a.b, c as d` and `from ..x import (a, b as c)`, including parenthesised lists that
+# span lines. Only statements that start a line are read, so a docstring or comment that
+# mentions "import" mid-line is ignored.
+_IMPORT = re.compile(r"^[ \t]*import[ \t]+([^\n#;]+)", re.MULTILINE)
+_FROM = re.compile(
+    r"^[ \t]*from[ \t]+(\.*)([\w.]*)[ \t]+import[ \t]+(\([^)]*\)|[^\n#;]*)",
+    re.MULTILINE,
+)
+
+
+def _names(listing: str) -> list[str]:
+    """The imported names in `a, b as c` or `(a,\n b as c,)`, without the aliases."""
+    cleaned = re.sub(r"#[^\n]*", "", listing).strip("() \t\n")
+    return [part.split()[0] for part in cleaned.split(",") if part.split()]
+
+
 def imported_modules(
     module_name: str, source: str, *, is_package: bool = False
 ) -> set[str]:
     """Absolute names of everything `source` imports, with relative imports resolved."""
     found: set[str] = set()
-    for node in ast.walk(ast.parse(source)):
-        if isinstance(node, ast.Import):
-            found.update(alias.name for alias in node.names)
-        elif isinstance(node, ast.ImportFrom):
-            if node.level:
-                parts = module_name.split(".")
-                base = parts if is_package else parts[:-1]
-                base = base[: len(base) - (node.level - 1)]
-                target = ".".join([*base, *([node.module] if node.module else [])])
-            else:
-                target = node.module or ""
-            found.add(target)
-            found.update(f"{target}.{alias.name}" for alias in node.names)
+    for match in _IMPORT.finditer(source):
+        found.update(_names(match.group(1)))
+    for match in _FROM.finditer(source):
+        dots, module, listing = match.groups()
+        if dots:
+            parts = module_name.split(".")
+            base = parts if is_package else parts[:-1]
+            base = base[: len(base) - (len(dots) - 1)]
+            target = ".".join([*base, *([module] if module else [])])
+        else:
+            target = module
+        found.add(target)
+        found.update(f"{target}.{name}" for name in _names(listing))
     return found
 
 
@@ -121,3 +137,27 @@ def test_adapter_importing_bootstrap_is_a_violation() -> None:
     assert violations(
         "twin.adapters.api.bad", "from twin.bootstrap import create_app\n"
     )
+
+
+def test_parser_reads_plain_aliased_and_multiline_imports() -> None:
+    source = (
+        "import os, sqlalchemy.orm as orm\n"
+        "from fastapi import (\n    FastAPI,  # comment\n    Request as R,\n)\n"
+        "from . import sibling\n"
+        "    import nested_in_a_function\n"
+    )
+    found = imported_modules("twin.domain.mod", source)
+    assert {
+        "os",
+        "sqlalchemy.orm",
+        "fastapi",
+        "fastapi.FastAPI",
+        "fastapi.Request",
+    } <= found
+    assert "twin.domain.sibling" in found
+    assert "nested_in_a_function" in found
+
+
+def test_parser_ignores_the_word_import_inside_text() -> None:
+    source = '"""We import fastapi lazily."""\nx = "from fastapi import FastAPI"\n'
+    assert not violations("twin.domain.good", source)

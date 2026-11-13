@@ -67,3 +67,4 @@ None.
 - `pytest` runs with `--import-mode=importlib` so test files in different folders can share a name.
 - `httpx` brings a Starlette deprecation warning that points to `httpx2`. The story names `httpx`, so it stays; revisit if the warning becomes an error.
 - Settings read the repository-root `.env` (the same file E01-S03's Docker Compose will use) and ignore variables that are not `TWIN_`-prefixed.
+- Review change: the layer test reads import statements with regular expressions instead of Python's `ast` module (the owner does not trust `ast`). Only statements that start a line are read, which covers plain, aliased, relative and multi-line parenthesised imports; tests prove it.
