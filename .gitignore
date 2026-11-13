@@ -26,3 +26,5 @@ frontend/dist
 
 # Local environment
 .env
+frontend/e2e/test-results
+frontend/playwright-report

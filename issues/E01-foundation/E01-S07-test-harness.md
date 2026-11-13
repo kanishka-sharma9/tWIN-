@@ -1,7 +1,7 @@
 # E01-S07 Test and lint harness
 
 - **Epic:** E01 Foundation
-- **Status:** Ready
+- **Status:** Done (WebKit run pending)
 - **Depends on:** E01-S03, E01-S04
 - **Decisions:** D-022, D-038, D-043, D-044, D-049
 - **Flows:** None
@@ -68,3 +68,15 @@ Playwright in CI and the real end-to-end flows (E09-S01), coverage thresholds, t
 ## Open questions
 
 None.
+
+## Notes
+
+- Criterion 1 (each suite runs with one command): the backend suite (29 tests), `-m unit` (11 tests), Vitest (40 tests), Biome, ESLint, `tsc` and the build all ran and pass. Every command in the table was run, except the full-stack `npm run e2e:full` (it only adds `docker compose up --wait` and the API to `npm run e2e`).
+- Criterion 2: `uv run pytest tests/api/test_health.py::test_health_ok`, `npx vitest run src/pages/Health.test.tsx -t "database down"` (1 passed, 4 skipped) and `npx playwright test e2e/smoke.spec.ts --project=firefox-phone` were run.
+- Criterion 3: with the `db` container stopped, `pytest -m unit` passed (11 passed, 18 deselected), while an `api` test errored on the connection as expected.
+- Criterion 4: **partly met.** The smoke test passes in `chromium-desktop`, `chromium-phone`, `firefox-desktop` and `firefox-phone`. The two WebKit projects could not start here: the Ubuntu in WSL lacks system libraries and installing them needs `sudo` (`sudo npx playwright install-deps`). Chromium and Firefox were run with the missing user-space libraries unpacked into `~/pwlibs` and `LD_LIBRARY_PATH`; WebKit still lacked `libjxl0.8`, `libbacktrace` and others that are not available as Ubuntu packages. The WebKit projects need a run on a machine where `npx playwright install --with-deps` works (or the dev container).
+- Criterion 5: checked once by making the page 2000 px wide; the smoke test failed in `chromium-phone` with an overflow of 456 px, and the change was reverted.
+- Criterion 6: the CLAUDE.md "Status" section no longer describes the scaffold, and both CLAUDE.md and README.md carry the command table.
+- To make `pytest -m unit` possible, tests are marked by folder in `tests/conftest.py`. `tests/__init__.py` and `pythonpath = ["."]` let tests import `tests.fakes`. `test_check_env.py` moved into `tests/unit/`.
+- The fake-versus-port example uses a new `Clock` port (`application/ports/clock.py`) and `tests/fakes/clock.py`. mypy and ty check that the fake fits the port.
+- The `renderWithProviders()` helper and the fetch-mocking helpers (`src/test/fetchMock.ts`) were added in E01-S06 and are reused here. They sit beside `src/test/setup.ts` rather than inside it.
