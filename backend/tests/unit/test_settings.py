@@ -26,6 +26,7 @@ def test_port_is_read_from_the_environment(monkeypatch: pytest.MonkeyPatch) -> N
 
 def test_main_starts_uvicorn_in_factory_mode(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("TWIN_PORT", "9002")
+    monkeypatch.setattr("sys.argv", ["twin"])
     calls: list[tuple[tuple[object, ...], dict[str, object]]] = []
     monkeypatch.setattr("uvicorn.run", lambda *a, **k: calls.append((a, k)))
     main()
@@ -33,3 +34,9 @@ def test_main_starts_uvicorn_in_factory_mode(monkeypatch: pytest.MonkeyPatch) ->
     assert args == ("twin.bootstrap:create_app",)
     assert kwargs["factory"] is True
     assert kwargs["port"] == 9002
+
+
+def test_main_rejects_an_unknown_command(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("sys.argv", ["twin", "nope"])
+    with pytest.raises(SystemExit, match="Unknown command"):
+        main()

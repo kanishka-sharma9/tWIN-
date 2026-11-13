@@ -5,7 +5,13 @@ import tseslint from "typescript-eslint";
 
 export default tseslint.config(
 	{
-		ignores: ["dist", "node_modules", "e2e/test-results", "playwright-report"],
+		ignores: [
+			"dist",
+			"node_modules",
+			"src/api/schema.d.ts",
+			"e2e/test-results",
+			"playwright-report",
+		],
 	},
 	{
 		files: ["**/*.{ts,tsx}"],

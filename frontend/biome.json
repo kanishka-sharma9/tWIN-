@@ -3,7 +3,14 @@
 	"vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": false },
 	"files": {
 		"ignoreUnknown": false,
-		"includes": ["**", "!dist", "!node_modules", "!package-lock.json"]
+		"includes": [
+			"**",
+			"!dist",
+			"!node_modules",
+			"!package-lock.json",
+			"!src/api/schema.d.ts",
+			"!src/api/openapi.json"
+		]
 	},
 	"formatter": { "enabled": true, "indentStyle": "tab" },
 	"linter": {
