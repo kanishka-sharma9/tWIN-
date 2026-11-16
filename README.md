@@ -17,7 +17,7 @@ Planning is done and implementation has just started. Epic E01 (Foundation) is u
 | Path | Contents |
 |---|---|
 | `backend/` | Python project (package `twin`, tests, `pyproject.toml`, `uv.lock`) |
-| `frontend/` | Web app (arrives with E01-S04); holds `.nvmrc` for now |
+| `frontend/` | Web app (Vite, React, TypeScript, Tailwind) |
 | `scripts/` | Helper scripts, such as `check-env.sh` |
 | `issues/` | Epics and stories, with the definition of done |
 | `DECISIONS.md` | Every product and technical decision, with the options weighed |
@@ -95,6 +95,14 @@ uv run twin                       # API on http://127.0.0.1:8000/api/health
 ```
 
 The health endpoint answers `{"status": "ok", "database": "up"}`. Tests need the `db` container running; they use a separate `twin_test` database.
+
+## Running the web app
+
+With the database and API running (see above):
+
+```bash
+cd frontend && npm ci && npm run dev   # http://localhost:5173, proxies /api to the API
+```
 
 ## Dev container
 

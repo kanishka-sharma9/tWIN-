@@ -26,3 +26,6 @@ frontend/dist
 
 # Local environment
 .env
+
+# Browser verification evidence (screenshots, videos); for human review only
+.verification/
