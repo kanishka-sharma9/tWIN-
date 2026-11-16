@@ -1,7 +1,7 @@
 # E01-S05 Theme tokens
 
 - **Epic:** E01 Foundation
-- **Status:** Done (browser checks pending)
+- **Status:** Done
 - **Depends on:** E01-S04
 - **Decisions:** D-013, D-043, D-046, D-052, D-053 (Proposed)
 - **Flows:** None
@@ -75,5 +75,5 @@ Real screens and components beyond the shadcn base (each UI story adds its own),
 - Criterion 2: 16 contrast pairings are asserted in `src/styles/tokens.test.ts` and pass. Criterion 3 is the hygiene tests (no colour literals outside `tokens.css`, no built-in colour classes).
 - Criterion 7: no `https://` font URL in source, and `scripts/check-dist.mjs` fails the build if built CSS loads anything from another origin. The Inter files are bundled into `dist/assets`.
 - The `/dev/tokens` route is behind `import.meta.env.DEV`; the build fails if the showcase marker string appears in `dist/`.
-- **Not done:** the Claude in Chrome checks for focus visibility (criterion 5) and for 360 px and 1280 px without horizontal scroll (criterion 6; the Playwright version comes with E01-S07). The browser could not load the WSL dev server. Still to be done by hand at `/dev/tokens`.
+- Browser checks (criteria 1, 5 and 6), done with Playwright Chromium against `npm run dev` at `/dev/tokens`: at 1280 px and 360 px there is no horizontal overflow and no console errors, and nothing is requested from another origin; the page font is Inter Variable. Tabbing shows a 2 px cyan ring with a 2 px offset on the button and a 2 px oxblood ring (rgb 74, 14, 27) on each navbar link. Setting `--cyan` to magenta on the root turned the primary button from rgb(0, 229, 255) to rgb(255, 0, 255). Screenshots and videos were kept locally in `.verification/` (git-ignored).
 - `frontend/docs/theme.md` holds the usage rules.
