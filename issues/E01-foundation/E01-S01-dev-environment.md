@@ -1,7 +1,7 @@
 # E01-S01 Developer environment
 
 - **Epic:** E01 Foundation
-- **Status:** Done (criterion 2 pending the owner)
+- **Status:** Done
 - **Depends on:** E01-S09 (so the README describes the final layout)
 - **Decisions:** D-020, D-038, D-041
 - **Flows:** None
@@ -45,4 +45,4 @@ None.
 
 - Criterion 3 is covered by `backend/tests/test_check_env.py` (all good, Node too old, Docker missing).
 - Criterion 1 is not met on this machine yet: `scripts/check-env.sh` correctly fails because WSL still has Node 18. Docker Compose is fine.
-- Criterion 2 (a clean-WSL walkthrough) is manual and still to be done by the owner.
+- Criterion 2 (a clean-WSL walkthrough) is manual and cannot be automated; the story is marked Done on the owner's instruction, and the walkthrough has not been run on a fresh WSL user.

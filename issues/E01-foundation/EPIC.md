@@ -1,6 +1,6 @@
 # E01 Foundation
 
-- **Status:** Planned (specs complete; two stories wait on Proposed decisions)
+- **Status:** Done
 - **Depends on:** None
 
 ## Outcome
