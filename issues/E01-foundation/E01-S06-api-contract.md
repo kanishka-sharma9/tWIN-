@@ -1,7 +1,7 @@
 # E01-S06 API contract and typed client
 
 - **Epic:** E01 Foundation
-- **Status:** Done (browser check pending)
+- **Status:** Done
 - **Depends on:** E01-S02, E01-S04
 - **Decisions:** D-024, D-029, D-037, D-053 (Proposed)
 - **Flows:** FLOWS.md 1
@@ -72,3 +72,4 @@ Login and the real `refresh()` (E02-S03), the full list of error codes (each fea
 - Criterion 6: CI's Python job re-exports the schema and runs `git diff --exit-code` on `openapi.json`; the web job regenerates `schema.d.ts` and diffs it. Both were simulated locally on a clean tree.
 - `openapi-fetch` needs an absolute URL outside the browser, so the client's `baseUrl` is `location.origin` (or `http://localhost` when there is no `location`).
 - `STATUS_BY_ERROR` is checked in insertion order, so feature stories should list more specific error classes first.
+- Browser check, done with Playwright Chromium against `npm run dev`, the API and the database, at 1280 px and 375 px: the page shows "API: ok, database: up" through the typed client, with no horizontal overflow. From the page, an unknown route returned 404 with `code: "not_found"` and a POST to `/api/health` returned 405 with `code: "method_not_allowed"`, both in the one error shape. With the API stopped, the page shows "Something went wrong. Please try again." (the dev proxy answers 502, which the browser also logs as a console error). Screenshots and videos were kept locally in `.verification/` (git-ignored).
