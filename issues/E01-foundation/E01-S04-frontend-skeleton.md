@@ -1,7 +1,7 @@
 # E01-S04 Frontend skeleton
 
 - **Epic:** E01 Foundation
-- **Status:** Done (browser check pending)
+- **Status:** Done
 - **Depends on:** E01-S01, E01-S09
 - **Decisions:** D-016, D-017, D-025, D-037, D-038, D-044, D-047
 - **Flows:** None
@@ -53,4 +53,4 @@ None.
 - The template's demo assets were removed and `public/favicon.svg` replaced with a titled SVG (Biome's accessibility rule rejects an untitled one).
 - Criterion 2 and 4 (local): `npx biome ci`, `npx eslint .`, `npm run typecheck`, `npm test` (4 Vitest tests: ok, database down, network error, API error status) and `npm run build` all pass. CI's web job now runs instead of skipping.
 - Criterion 3: `npm run build` ends with `scripts/check-dist.mjs`, which fails on any file outside html, js, css, svg, ico, png, woff2 or json.
-- Criterion 1: with the API and database up, `curl localhost:5173/api/health` through the Vite proxy returned `{"status":"ok","database":"up"}` and the page title is tWIN!!. The in-browser check through Claude in Chrome (and the 375 px and 1280 px sizes, criterion 5) was **not done**: the browser tab could not load the WSL dev server. Still to be done by hand.
+- Criterion 1: with the API and database up, `curl localhost:5173/api/health` through the Vite proxy returned `{"status":"ok","database":"up"}` and the page title is tWIN!!. Browser check (criteria 1 and 5), done with Playwright Chromium against `npm run dev`, the API and the database: at 1280 px and 375 px the title is tWIN!!, the page shows "API: ok, database: up", there is no horizontal overflow and no console errors. Screenshots and videos were kept locally in `.verification/` (git-ignored).
