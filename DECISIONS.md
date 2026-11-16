@@ -63,6 +63,7 @@ Every product and technical decision for the dual-name file explorer, with the o
 | D-051 | Where the version pins live | Accepted |
 | D-052 | How the theme colours are applied | Accepted |
 | D-053 | Typeface, icon set, theme variant and API client libraries | Proposed |
+| D-054 | TypeScript pinned to 6.0 for typescript-eslint | Accepted |
 
 ---
 
@@ -866,3 +867,17 @@ Gaps that no earlier decision covered, put to the owner on 2026-11-11.
 - API client: `openapi-typescript` + `openapi-fetch` (chosen, small and types come straight from the schema); a hand-written `fetch` wrapper over the generated types (fewer dependencies, more code); an all-in-one generator such as Orval or hey-api (generates hooks too, heavier and more to learn).
 
 **Consequences:** used by E01-S05 and E01-S06, which stay Draft until these are confirmed or changed.
+
+### D-054 TypeScript pinned to 6.0 for typescript-eslint
+
+**Status:** Accepted on 2026-11-12 (decided while building E01-S04, under the owner's instruction to proceed without questions)
+
+**Decision:** `frontend/` uses TypeScript `~6.0`. Vite's template ships TypeScript 7, but typescript-eslint 8 declares support for `>=4.8.4 <6.1.0`, and D-038 needs its type-aware rules (`no-floating-promises`, `no-misused-promises`).
+
+**Options considered**
+
+- **TypeScript 6.0 (chosen):** every peer dependency resolves cleanly, with no flags.
+- **TypeScript 7 with `--legacy-peer-deps`:** newer and faster, but the type-aware lint rules run on an unsupported compiler.
+- **Drop the type-aware rules:** removes the reason for ESLint in D-038.
+
+**Consequences:** move to TypeScript 7 once typescript-eslint supports it; the change is one line in `frontend/package.json`.

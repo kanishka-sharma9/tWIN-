@@ -4,13 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Status
 
-Planning is done; implementation has not started. The code is still the `uv init --package` scaffold: a FastAPI app (`twin.bootstrap.create_app`) with `GET /api/health`, the layer folders under `backend/src/twin/`, and an architecture test that enforces the import rules (E01-S02). A PostgreSQL 18 service in `docker-compose.yml`, SQLAlchemy and Alembic with an empty baseline migration, and `/api/health` reporting `database` up or down (E01-S03). No frontend yet. The Python checks, CI (`.github/workflows/ci.yml`) and dev container (`.devcontainer/`) are in place (E01-S08, D-041). Update this file as the stories in `issues/E01-foundation/` land.
+Planning is done; implementation has not started. The code is still the `uv init --package` scaffold: a FastAPI app (`twin.bootstrap.create_app`) with `GET /api/health`, the layer folders under `backend/src/twin/`, and an architecture test that enforces the import rules (E01-S02). A PostgreSQL 18 service in `docker-compose.yml`, SQLAlchemy and Alembic with an empty baseline migration, and `/api/health` reporting `database` up or down (E01-S03). A Vite + React + TypeScript app in `frontend/` with a placeholder health page, and CI's web job now runs (E01-S04). The Python checks, CI (`.github/workflows/ci.yml`) and dev container (`.devcontainer/`) are in place (E01-S08, D-041). Update this file as the stories in `issues/E01-foundation/` land.
 
 ## What is being built
 
 **tWIN!!** (D-047): a web-first, fully responsive file explorer in which every file has a Name and an **Alter** (a second, user-typed name). The (name, alter) pair must be unique across a user's vault, ignoring case; the folder plays no part. Planned stack: FastAPI + PostgreSQL (Docker Compose), structured as ports and adapters, with file bytes stored in PostgreSQL and JWT login, plus a Vite + React + TypeScript + Tailwind/shadcn frontend.
 
-D-025 puts the Python project in `backend/` and the web app in `frontend/` (story E01-S09, done). `frontend/` holds only `.nvmrc` and a `.gitkeep` until E01-S04. The root keeps `package.json`, `package-lock.json` and `node_modules`, which only install the BMad tooling.
+D-025 puts the Python project in `backend/` and the web app in `frontend/` (story E01-S09, done). The root keeps `package.json`, `package-lock.json` and `node_modules`, which only install the BMad tooling.
 
 ## Project documents
 
@@ -46,7 +46,7 @@ uv run pytest                # all tests
 uv run pytest tests/api/test_health.py::test_health_ok   # one test
 ```
 
-Frontend (D-038; arrives with E01-S04 in `frontend/`): Biome formats and lints, ESLint holds only the type-aware typescript-eslint and react-hooks rules, and `tsc` type-checks. CI's web job runs `npx biome ci`, `npx eslint .`, `npm run typecheck`, `npm test` and `npm run build` inside `frontend/`, so `package.json` must define the `typecheck`, `test` and `build` scripts. Node is pinned in `frontend/.nvmrc`; the dev container's Node feature version must match it.
+Frontend (D-038, in `frontend/`; run from there with Node 26 via nvm): `npm run dev` serves on 5173 and proxies `/api` to 8000. Biome formats and lints, ESLint holds only the type-aware typescript-eslint and react-hooks rules, and `tsc` type-checks. CI's web job runs `npx biome ci`, `npx eslint .`, `npm run typecheck`, `npm test` and `npm run build` inside `frontend/`, so `package.json` must define the `typecheck`, `test` and `build` scripts. Node is pinned in `frontend/.nvmrc`; the dev container's Node feature version must match it.
 
 The checkout lives in the WSL filesystem (`/home/kanis/MultiID-folder-mgmt`). Run `uv` and `git` inside WSL rather than from Windows against the `\\wsl.localhost\...` path — Windows git rejects the repo with a "dubious ownership" error, and `uv` is installed on the WSL side. From a Windows shell:
 
