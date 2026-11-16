@@ -1,7 +1,7 @@
 # E01-S07 Test and lint harness
 
 - **Epic:** E01 Foundation
-- **Status:** Done (WebKit run pending)
+- **Status:** Done
 - **Depends on:** E01-S03, E01-S04
 - **Decisions:** D-022, D-038, D-043, D-044, D-049
 - **Flows:** None
@@ -80,3 +80,4 @@ None.
 - To make `pytest -m unit` possible, tests are marked by folder in `tests/conftest.py`. `tests/__init__.py` and `pythonpath = ["."]` let tests import `tests.fakes`. `test_check_env.py` moved into `tests/unit/`.
 - The fake-versus-port example uses a new `Clock` port (`application/ports/clock.py`) and `tests/fakes/clock.py`. mypy and ty check that the fake fits the port.
 - The `renderWithProviders()` helper and the fetch-mocking helpers (`src/test/fetchMock.ts`) were added in E01-S06 and are reused here. They sit beside `src/test/setup.ts` rather than inside it.
+- Browser run, repeated with video and screenshots on: `npx playwright test e2e/smoke.spec.ts` passes in `chromium-desktop`, `chromium-phone`, `firefox-desktop` and `firefox-phone` (4 of 6) against `npm run dev`, the API and the database. The two WebKit projects still fail at launch (`Host system is missing dependencies`): the WebKit build needs `libjxl.so.0.8`, `libbacktrace.so.0` and `libsoup-3.0.so.0`, and no Ubuntu or Debian package provides `libjxl0.8`, so they cannot be unpacked into user space the way the other libraries were. **Criterion 4 therefore stays partly met in this environment**; the WebKit projects need one run with `npx playwright install --with-deps` on a machine with `sudo` or in the dev container. Screenshots and videos were kept locally in `.verification/` (git-ignored).
