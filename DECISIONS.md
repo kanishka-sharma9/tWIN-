@@ -64,6 +64,7 @@ Every product and technical decision for the dual-name file explorer, with the o
 | D-052 | How the theme colours are applied | Accepted |
 | D-053 | Typeface, icon set, theme variant and API client libraries | Proposed |
 | D-054 | TypeScript pinned to 5.9 for typescript-eslint and openapi-typescript | Accepted |
+| D-055 | Account, vault and root-folder storage | Proposed |
 
 ---
 
@@ -883,3 +884,23 @@ Gaps that no earlier decision covered, put to the owner on 2026-11-11.
 - **Drop the type-aware rules:** removes the reason for ESLint in D-038.
 
 **Consequences:** move to a newer TypeScript once both typescript-eslint and openapi-typescript support it; the change is one line in `frontend/package.json`.
+
+### D-055 Account, vault and root-folder storage
+
+**Status:** Proposed (decided while building E02-S01 without an owner to ask)
+
+**Decision:**
+
+- `users`, `vaults` and `folders` are separate tables with UUID keys. A vault belongs to a user through `vaults.owner_id`, with a unique constraint that makes it one vault per account today (D-009); dropping that one constraint allows shared or multiple vaults later.
+- Email uniqueness ignoring case is a unique index on `lower(email)`. The email is stored as typed and compared case-insensitively. E02-S02 may tighten the email rules.
+- A vault root is a `folders` row with no parent and the name `Root`; a partial unique index allows one per vault. The table is deliberately minimal (id, vault, parent, name, created_at); E04-S01 adds sibling-name rules and the rest on top of it.
+- Creating a user, vault and root folder is one transaction (the `CreateUser` use case).
+- Every repository read of vault data takes the vault id. The vault comes from the `get_current_vault` dependency, which resolves the caller through a `UserAuthenticator` port, never from request input. Until E02-S03 the wired authenticator authenticates nobody.
+
+**Options considered**
+
+- **Vault id on the user row:** one fewer table, but shared vaults would need a migration of every query. Rejected.
+- **Vault-bound repository objects (vault id fixed at construction):** harder to misuse, but needs a factory per request. A required `vault_id` argument is simpler and the isolation tests check it. Can change later.
+- **Create the root folder lazily on first use:** removes a row but leaves a state with no root to reason about. Rejected.
+
+**Consequences:** E02-S02 adds the password hash column; E04-S01 extends `folders`; E02-S03 supplies the real authenticator.
