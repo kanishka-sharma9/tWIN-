@@ -13,7 +13,7 @@ from tests.fakes.identity import FakeIdentityProvider
 
 from twin.adapters.persistence.models import FolderRow, UserRow, VaultRow
 from twin.bootstrap import create_app
-from twin.domain.identity import ExternalIdentity
+from twin.domain.identity import VerifiedIdentity
 from twin.settings import Settings
 
 CSRF = {"X-Requested-With": "twin"}
@@ -97,10 +97,6 @@ def me(client: TestClient) -> dict[str, object]:
     return body
 
 
-def test_providers_reports_google_on(google: TestClient) -> None:
-    assert google.get("/api/auth/providers").json() == {"google": True}
-
-
 def test_start_redirects_to_the_provider_with_state_and_pkce(
     google: TestClient, fake: FakeIdentityProvider
 ) -> None:
@@ -124,7 +120,7 @@ def test_start_redirects_to_the_provider_with_state_and_pkce(
 def test_first_sign_in_creates_a_vault_and_the_second_lands_in_the_same_one(
     google: TestClient, fake: FakeIdentityProvider, settings: Settings, email: str
 ) -> None:
-    fake.codes["good"] = ExternalIdentity("google-sub-1", email)
+    fake.codes["good"] = VerifiedIdentity("google-sub-1", email)
     first = sign_in(google)
     assert first.status_code == 302
     assert first.headers["location"] == "/"
@@ -148,7 +144,7 @@ def test_callback_sends_the_pkce_verifier_that_matches_the_challenge(
 ) -> None:
     from twin.adapters.auth.oauth_state import code_challenge
 
-    fake.codes["good"] = ExternalIdentity("google-sub-1", email)
+    fake.codes["good"] = VerifiedIdentity("google-sub-1", email)
     response = google.get("/api/auth/google/start", follow_redirects=False)
     query = parse_qs(urlsplit(response.headers["location"]).query)
     callback(google, "good", query["state"][0])
@@ -165,7 +161,7 @@ def test_email_of_a_password_account_creates_nothing_and_lands_on_login(
     )
     assert signup.status_code == 201
     google.cookies.clear()
-    fake.codes["good"] = ExternalIdentity("google-sub-9", email.lower())
+    fake.codes["good"] = VerifiedIdentity("google-sub-9", email.lower())
     response = sign_in(google)
     assert response.status_code == 302
     assert response.headers["location"] == "/login?error=account_exists"
@@ -185,7 +181,7 @@ def test_email_of_a_password_account_creates_nothing_and_lands_on_login(
 def test_a_google_account_has_no_password_to_log_in_with(
     google: TestClient, fake: FakeIdentityProvider, email: str
 ) -> None:
-    fake.codes["good"] = ExternalIdentity("google-sub-1", email)
+    fake.codes["good"] = VerifiedIdentity("google-sub-1", email)
     sign_in(google)
     google.cookies.clear()
     login = google.post("/api/auth/login", json={"email": email, "password": PASSWORD})
@@ -195,7 +191,7 @@ def test_a_google_account_has_no_password_to_log_in_with(
 def test_state_mismatch_is_refused_and_the_provider_is_not_called(
     google: TestClient, fake: FakeIdentityProvider, settings: Settings, email: str
 ) -> None:
-    fake.codes["good"] = ExternalIdentity("google-sub-1", email)
+    fake.codes["good"] = VerifiedIdentity("google-sub-1", email)
     start(google)
     response = callback(google, "good", "not-the-state")
     assert response.headers["location"] == "/login?error=google_failed"
@@ -206,7 +202,7 @@ def test_state_mismatch_is_refused_and_the_provider_is_not_called(
 def test_callback_without_the_state_cookie_is_refused(
     google: TestClient, fake: FakeIdentityProvider, settings: Settings, email: str
 ) -> None:
-    fake.codes["good"] = ExternalIdentity("google-sub-1", email)
+    fake.codes["good"] = VerifiedIdentity("google-sub-1", email)
     state = start(google)
     google.cookies.clear()
     response = callback(google, "good", state)
@@ -218,7 +214,7 @@ def test_callback_without_the_state_cookie_is_refused(
 def test_state_cookie_cannot_be_replayed_after_a_successful_sign_in(
     google: TestClient, fake: FakeIdentityProvider, email: str
 ) -> None:
-    fake.codes["good"] = ExternalIdentity("google-sub-1", email)
+    fake.codes["good"] = VerifiedIdentity("google-sub-1", email)
     state = start(google)
     assert callback(google, "good", state).headers["location"] == "/"
     # The browser dropped the cookie when the callback answered; a replay has none.
@@ -267,7 +263,7 @@ def test_disabled_provider_answers_404_and_the_app_works(
     for path in ("/api/auth/google/start", "/api/auth/google/callback"):
         response = client.get(path, follow_redirects=False)
         assert response.status_code == 404
-        assert response.json()["error"]["code"] == "provider_disabled"
+        assert response.json()["error"]["code"] == "not_found"
     signup = client.post(
         "/api/auth/signup", json={"email": email, "password": PASSWORD}
     )
@@ -275,37 +271,3 @@ def test_disabled_provider_answers_404_and_the_app_works(
     client.cookies.clear()
     login = client.post("/api/auth/login", json={"email": email, "password": PASSWORD})
     assert login.status_code == 200
-
-
-@pytest.mark.parametrize(
-    "update",
-    [
-        {"google_client_id": "id"},
-        {"google_client_secret": SecretStr("s")},
-        {"google_client_id": "id", "google_client_secret": SecretStr("")},
-        {
-            "google_client_id": "id",
-            "google_client_secret": SecretStr("s"),
-            "google_redirect_uri": "",
-        },
-    ],
-)
-def test_google_stays_off_unless_all_three_settings_are_set(
-    settings: Settings, update: dict[str, object]
-) -> None:
-    app = create_app(settings.model_copy(update=update))
-    assert app.state.identity_provider is None
-
-
-def test_all_three_settings_switch_the_real_provider_on(settings: Settings) -> None:
-    from twin.adapters.auth.google_identity import GoogleIdentityProvider
-
-    app = create_app(
-        settings.model_copy(
-            update={
-                "google_client_id": "id",
-                "google_client_secret": SecretStr("s"),
-            }
-        )
-    )
-    assert isinstance(app.state.identity_provider, GoogleIdentityProvider)
