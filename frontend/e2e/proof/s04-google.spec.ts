@@ -73,6 +73,7 @@ test.describe("Google not configured", () => {
 });
 
 test.describe("Google configured with fake values", () => {
+	test.describe.configure({ mode: "serial" }); // one API process for the group
 	let api: ChildProcess;
 
 	test.beforeAll(async () => {
