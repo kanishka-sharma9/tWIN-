@@ -1,15 +1,17 @@
 import json
 from pathlib import Path
 
+from pydantic import SecretStr
+
 from twin.adapters.api.openapi import export_openapi
 from twin.bootstrap import create_app
 from twin.settings import Settings
 
+SETTINGS = Settings(jwt_secret=SecretStr("x" * 32))
+
 
 def test_export_contains_health_and_the_error_schema(tmp_path: Path) -> None:
-    target = export_openapi(
-        create_app(Settings()), tmp_path / "nested" / "openapi.json"
-    )
+    target = export_openapi(create_app(SETTINGS), tmp_path / "nested" / "openapi.json")
     spec = json.loads(target.read_text())
     assert "/api/health" in spec["paths"]
     assert "ErrorResponse" in spec["components"]["schemas"]
@@ -20,7 +22,7 @@ def test_export_contains_health_and_the_error_schema(tmp_path: Path) -> None:
 
 
 def test_export_is_stable(tmp_path: Path) -> None:
-    app = create_app(Settings())
+    app = create_app(SETTINGS)
     first = export_openapi(app, tmp_path / "a.json").read_text()
-    second = export_openapi(create_app(Settings()), tmp_path / "b.json").read_text()
+    second = export_openapi(create_app(SETTINGS), tmp_path / "b.json").read_text()
     assert first == second

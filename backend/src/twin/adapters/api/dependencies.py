@@ -5,7 +5,7 @@ from fastapi import Depends, Header, Request
 from sqlalchemy.orm import Session
 
 from twin.application.ports.unit_of_work import UnitOfWork
-from twin.domain.vault import CurrentVault, NotAuthenticated
+from twin.domain.vault import CurrentVault, NotAuthenticated, User
 
 
 def get_session(request: Request) -> Iterator[Session]:
@@ -35,3 +35,16 @@ def get_current_vault(
     if vault is None:
         raise NotAuthenticated("Log in to continue.")
     return vault
+
+
+def get_current_user(
+    request: Request,
+    uow: Annotated[UnitOfWork, Depends(get_uow)],
+    authorization: Annotated[str | None, Header()] = None,
+) -> User:
+    """The account behind the bearer token; 401 when the token is missing, bad or expired."""
+    user_id = request.app.state.authenticator.authenticate(authorization)
+    user = uow.users.get_by_id(user_id) if user_id else None
+    if user is None:
+        raise NotAuthenticated("Log in to continue.")
+    return user

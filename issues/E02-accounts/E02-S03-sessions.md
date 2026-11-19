@@ -1,7 +1,7 @@
 # E02-S03 Log in, log out and tokens
 
 - **Epic:** E02 Accounts and login
-- **Status:** Draft
+- **Status:** Done
 - **Depends on:** E02-S02
 - **Decisions:** D-029, D-030
 - **Flows:** FLOWS.md 2.2

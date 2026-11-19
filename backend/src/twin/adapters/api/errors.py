@@ -16,6 +16,12 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from twin.domain.email import InvalidEmail
 from twin.domain.errors import DomainError
 from twin.domain.password import WeakPassword
+from twin.domain.session import (
+    CsrfFailed,
+    InvalidCredentials,
+    InvalidRefreshToken,
+    RateLimited,
+)
 from twin.domain.vault import EmailTaken, NotAuthenticated
 
 logger = logging.getLogger(__name__)
@@ -40,6 +46,10 @@ STATUS_BY_ERROR: dict[type[DomainError], int] = {
     EmailTaken: 409,
     WeakPassword: 422,
     NotAuthenticated: 401,
+    InvalidCredentials: 401,
+    InvalidRefreshToken: 401,
+    CsrfFailed: 403,
+    RateLimited: 429,
 }
 
 _CODE_BY_STATUS = {
@@ -50,22 +60,27 @@ _CODE_BY_STATUS = {
     405: "method_not_allowed",
     409: "conflict",
     422: "validation_error",
+    429: "rate_limited",
 }
 
 # Attached to the API router so every route documents the shape in OpenAPI.
 ERROR_RESPONSES: dict[int | str, dict[str, object]] = {
     status: {"model": ErrorResponse, "description": HTTPStatus(status).phrase}
-    for status in (400, 401, 403, 404, 405, 409, 422, 500)
+    for status in (400, 401, 403, 404, 405, 409, 422, 429, 500)
 }
 
 
 def error_response(
-    status: int, code: str, message: str, details: dict[str, object] | None = None
+    status: int,
+    code: str,
+    message: str,
+    details: dict[str, object] | None = None,
+    headers: dict[str, str] | None = None,
 ) -> JSONResponse:
     body = ErrorResponse(
         error=ErrorBody(code=code, message=message, details=details or {})
     )
-    return JSONResponse(status_code=status, content=body.model_dump())
+    return JSONResponse(status_code=status, content=body.model_dump(), headers=headers)
 
 
 def _status_for(error: DomainError) -> int:
@@ -78,7 +93,10 @@ def _status_for(error: DomainError) -> int:
 
 async def _domain_error(_: Request, exc: Exception) -> JSONResponse:
     assert isinstance(exc, DomainError)
-    return error_response(_status_for(exc), exc.code, exc.message, exc.details)
+    headers = (
+        {"Retry-After": str(exc.retry_after)} if isinstance(exc, RateLimited) else None
+    )
+    return error_response(_status_for(exc), exc.code, exc.message, exc.details, headers)
 
 
 async def _validation_error(_: Request, exc: Exception) -> JSONResponse:
