@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-SCRIPT = Path(__file__).resolve().parents[2] / "scripts" / "check-env.sh"
+SCRIPT = Path(__file__).resolve().parents[3] / "scripts" / "check-env.sh"
 
 
 def _stub(bin_dir: Path, name: str, output: str, exit_code: int = 0) -> None:

@@ -26,17 +26,22 @@ Planning is done and implementation has just started. Epic E01 (Foundation) is u
 
 ## Everyday commands
 
-Run from `backend/`:
+From `backend/`: `uv sync` installs the project and `uv run twin` starts the API. Tests and checks:
 
-```bash
-uv sync                  # install the project
-uv run twin              # run the placeholder entry point
-uv run ruff format       # format
-uv run ruff check        # lint
-uv run ty check          # type check
-uv run mypy              # strict type check
-uv run pytest            # tests
-```
+| What | Where | Command |
+|---|---|---|
+| All backend tests | `backend/` | `uv run pytest` |
+| Fast rule tests only (no database) | `backend/` | `uv run pytest -m unit` |
+| One backend test | `backend/` | `uv run pytest tests/api/test_health.py::test_health_ok` |
+| Backend lint and types | `backend/` | `uv run ruff format --check && uv run ruff check && uv run ty check && uv run mypy` |
+| Frontend unit tests | `frontend/` | `npm test` |
+| One frontend test | `frontend/` | `npx vitest run src/pages/Health.test.tsx -t "database down"` |
+| Frontend lint and types | `frontend/` | `npx biome ci && npx eslint . && npm run typecheck` |
+| Browser tests (API and database running) | `frontend/` | `npm run e2e` |
+| Browser tests, starting the database and API too | `frontend/` | `npm run e2e:full` |
+| One browser test, one project | `frontend/` | `npx playwright test e2e/smoke.spec.ts --project=firefox-phone` |
+
+Backend tests that touch the database need the `db` container running (`docker compose up -d db`); `-m unit` does not. Browser tests need a one-time `npx playwright install --with-deps` (it uses `sudo` for system libraries). The six Playwright projects are Chromium, Firefox and WebKit at desktop (1280x800) and phone (390x844) sizes; WebKit stands in for Safari (D-044). Playwright is not run in CI yet (E09-S01, D-041).
 
 ## Setup
 
