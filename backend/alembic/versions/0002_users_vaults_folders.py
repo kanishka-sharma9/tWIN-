@@ -22,7 +22,9 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id", name="pk_users"),
     )
     # Case-insensitive uniqueness is enforced by the database, whatever the application does.
-    op.create_index("uq_users_email_lower", "users", [sa.text("lower(email)")], unique=True)
+    op.create_index(
+        "uq_users_email_lower", "users", [sa.text("lower(email)")], unique=True
+    )
 
     op.create_table(
         "vaults",
