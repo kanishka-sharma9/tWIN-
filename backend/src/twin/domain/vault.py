@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from uuid import UUID
 
@@ -18,7 +18,7 @@ class NotAuthenticated(DomainError):
 class User:
     id: UUID
     email: Email
-    password_hash: str | None
+    password_hash: str | None = field(repr=False)
     google_subject: str | None
     created_at: datetime
 

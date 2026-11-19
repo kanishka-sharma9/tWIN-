@@ -23,7 +23,7 @@ class CreateUser:
         password_hash: str | None = None,
         google_subject: str | None = None,
     ) -> User:
-        if password_hash is None and google_subject is None:
+        if not password_hash and not google_subject:
             raise ValueError("A user needs a password hash or a Google subject.")
         parsed = Email(email)
         now = self._clock.now()
