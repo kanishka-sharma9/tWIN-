@@ -5,7 +5,7 @@ from tests.fakes.memory import MemoryStore, MemoryUnitOfWork
 from twin.application.create_user import CreateUser
 from twin.application.google_sign_in import GoogleSignIn
 from twin.application.ports.unit_of_work import UnitOfWork
-from twin.domain.identity import AccountExists, ExternalIdentity
+from twin.domain.identity import AccountExists, ExternalIdentity, IdentityRejected
 
 
 def make() -> tuple[GoogleSignIn, CreateUser, MemoryStore]:
@@ -60,3 +60,10 @@ def test_email_of_another_google_account_is_refused() -> None:
     with pytest.raises(AccountExists):
         sign_in.execute(ExternalIdentity("sub-2", "ada@example.com"))
     assert len(store.users) == 1
+
+
+def test_an_unusable_email_from_the_provider_is_rejected() -> None:
+    sign_in, _, store = make()
+    with pytest.raises(IdentityRejected):
+        sign_in.execute(ExternalIdentity("sub-1", "not an email"))
+    assert store.users == []
