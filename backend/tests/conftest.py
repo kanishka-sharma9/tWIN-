@@ -5,6 +5,7 @@ import pytest
 from alembic import command
 from alembic.config import Config
 from fastapi.testclient import TestClient
+from pydantic import SecretStr
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session
@@ -12,6 +13,7 @@ from sqlalchemy.orm import Session
 from twin.bootstrap import create_app
 from twin.settings import Settings
 
+TEST_JWT_SECRET = SecretStr("test-only-secret-0123456789-abcdefghij")
 ALEMBIC_INI = Path(__file__).resolve().parents[1] / "alembic.ini"
 
 
@@ -54,7 +56,7 @@ def test_database_url() -> str:
 
 @pytest.fixture
 def settings(test_database_url: str) -> Settings:
-    return Settings(database_url=test_database_url)
+    return Settings(database_url=test_database_url, jwt_secret=TEST_JWT_SECRET)
 
 
 @pytest.fixture
