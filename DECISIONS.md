@@ -66,6 +66,7 @@ Every product and technical decision for the dual-name file explorer, with the o
 | D-054 | TypeScript pinned to 5.9 for typescript-eslint and openapi-typescript | Accepted |
 | D-059 | E02-S01 build choices: root folder name, credential rule, unit of work | Proposed |
 | D-060 | E02-S02 build choices: signup validation, hasher and logging | Proposed |
+| D-062 | E02-S04 build choices: Google flow, state cookie, ID token checks and failures | Proposed |
 
 ---
 
@@ -944,3 +945,23 @@ Gaps that no earlier decision covered, put to the owner on 2026-11-11.
 
 **Consequences:** E02-S06 sends the CSRF header on refresh and logout and keeps the access token in memory. Expired and revoked token rows are never deleted yet (see the follow-ups in the PR). A password change (E02-S07) should revoke the person's families.
 
+### D-062 E02-S04 build choices: Google flow, state cookie, ID token checks and failures
+
+**Status:** Proposed (decided while building E02-S04 under the instruction to proceed without questions; D-058 holds the "off until the owner supplies a client" rule)
+
+**Decision:**
+- Authorization code with PKCE (S256) run by the backend with `httpx` (now a runtime dependency; vetted). Scope is `openid email`; `prompt=select_account` so a shared browser asks which Google account.
+- `state` and the PKCE verifier live in a signed httpOnly cookie `oauth_state` (HS256 JWT, key derived from `TWIN_JWT_SECRET`, own audience so it can never pass as an access token, 10 minutes, `Path=/api/auth/google`, `SameSite=Lax` because the callback is a top-level navigation from Google, `Secure` per `TWIN_COOKIE_SECURE`). The cookie is deleted by every callback answer, so a state cannot be replayed.
+- The ID token is read without checking its signature (OpenID Connect Core 3.1.3.7 allows this when it arrives straight from the token endpoint over TLS); issuer (either Google form), audience, expiry against the app clock, `email_verified` being `true`, and a non-empty subject and email are all required.
+- The account is found by `google_subject` first (so a changed Google email still lands in the same vault), then the email decides: an email that already has any account is refused (D-030), otherwise a user with no password hash and a vault are created. A lost race on the email also counts as "account exists".
+- Every callback failure is a 302 to the login page, not a JSON error: `?error=account_exists`, or `?error=google_failed` for bad or missing state, declined consent, a refused code or a failed ID token check. The UI (E02-S06) maps these two codes to messages. Success is a 302 to `/` with the refresh cookie set; the UI then calls `/api/auth/refresh` for an access token.
+- Google is enabled only when the client id, the secret and the redirect URI are all non-empty; otherwise `identity_provider` is `None`, `/api/auth/providers` says `{"google": false}` and the two Google routes answer 404 `provider_disabled`.
+- Nothing about Google is reachable from tests: they swap in `FakeIdentityProvider`, and `GoogleIdentityProvider` is tested against `httpx.MockTransport`.
+
+**Options considered**
+
+- ID token signature: skip, claims only (chosen, spec-permitted and no JWKS fetch or cache); verify against Google's JWKS (stricter, more moving parts and another network call).
+- State storage: signed cookie (chosen, no table); server-side table (revocable, needs a migration and cleanup); `itsdangerous` (new dependency for what PyJWT already does).
+- Failure form: redirect to login (chosen, the person is mid-navigation); JSON error (unreadable in a browser tab).
+
+**Consequences:** E02-S06 reads `?error=` on `/login`, shows the Google button when `/api/auth/providers` says so, and calls `/api/auth/refresh` after the redirect to `/`. Real Google has not been exercised; the owner must create the client (`docs/google-oauth-setup.md`) and try one sign-in by hand.
