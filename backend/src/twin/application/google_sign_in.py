@@ -2,8 +2,8 @@ from collections.abc import Callable
 
 from twin.application.create_user import CreateUser
 from twin.application.ports.unit_of_work import UnitOfWork
-from twin.domain.email import Email
-from twin.domain.identity import AccountExists, ExternalIdentity
+from twin.domain.email import Email, InvalidEmail
+from twin.domain.identity import AccountExists, ExternalIdentity, IdentityRejected
 from twin.domain.vault import EmailTaken, User
 
 
@@ -17,7 +17,10 @@ class GoogleSignIn:
         self._create_user = create_user
 
     def execute(self, identity: ExternalIdentity) -> User:
-        email = Email(identity.email)
+        try:
+            email = Email(identity.email)
+        except InvalidEmail as error:
+            raise IdentityRejected("Google sign-in did not complete.") from error
         with self._uow_factory() as uow:
             known = uow.users.get_by_google_subject(identity.subject)
             if known is not None:
