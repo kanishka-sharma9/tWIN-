@@ -1,6 +1,6 @@
 # E02 Accounts and login
 
-- **Status:** Ready
+- **Status:** In progress
 - **Depends on:** E01
 
 ## Outcome
@@ -11,7 +11,7 @@ A person can create an account with email + password or Google, gets a private v
 
 | ID | Story | Depends on | Proof | Status |
 |---|---|---|---|---|
-| [E02-S01](E02-S01-user-vault-model.md) | User and vault model | E01-S03 | api | Ready |
+| [E02-S01](E02-S01-user-vault-model.md) | User and vault model | E01-S03 | api | Done |
 | [E02-S02](E02-S02-signup-email.md) | Sign up with email and password | E02-S01 | api | Ready |
 | [E02-S03](E02-S03-sessions.md) | Log in, log out and tokens | E02-S02 | api | Ready |
 | [E02-S04](E02-S04-google-signin.md) | Google sign-in | E02-S03 | api | Ready |
