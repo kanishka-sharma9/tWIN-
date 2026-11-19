@@ -72,3 +72,12 @@ def test_folder_reads_are_scoped_to_the_vault(db_session: Session) -> None:
     assert folders.get(ada.vault.id, bob.root.id) is None
     assert folders.get(bob.vault.id, ada.root.id) is None
     assert folders.get_root(bob.vault.id) == bob.root
+
+
+def test_create_user_twice_in_different_case_leaves_one_vault(
+    db_session: Session,
+) -> None:
+    create_user(db_session, "ada@example.com")
+    with pytest.raises(EmailTaken):
+        create_user(db_session, "ADA@EXAMPLE.COM")
+    assert db_session.scalar(text("SELECT count(*) FROM vaults")) == 1
