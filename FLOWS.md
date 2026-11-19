@@ -64,7 +64,7 @@ sequenceDiagram
         A-->>W: 409 email_taken
         W-->>U: Say the account already exists and offer login
     else Created
-        A->>D: Record a refresh token
+        A->>D: Record a refresh token (E02-S03; E02-S02 answers 201 with the user only)
         A-->>W: 201 with access token and refresh cookie
         W-->>U: Open the empty vault
     end

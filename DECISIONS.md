@@ -65,6 +65,7 @@ Every product and technical decision for the dual-name file explorer, with the o
 | D-053 | Typeface, icon set, theme variant and API client libraries | Proposed |
 | D-054 | TypeScript pinned to 5.9 for typescript-eslint and openapi-typescript | Accepted |
 | D-055 | Account, vault and root-folder storage | Proposed |
+| D-056 | Sign-up rules: password, email and response | Proposed |
 
 ---
 
@@ -904,3 +905,23 @@ Gaps that no earlier decision covered, put to the owner on 2026-11-11.
 - **Create the root folder lazily on first use:** removes a row but leaves a state with no root to reason about. Rejected.
 
 **Consequences:** E02-S02 adds the password hash column; E04-S01 extends `folders`; E02-S03 supplies the real authenticator.
+
+### D-056 Sign-up rules: password, email and response
+
+**Status:** Proposed (decided while building E02-S02 without an owner to ask; the password length limits were given by the owner in the run brief)
+
+**Decision:**
+
+- Passwords are 10 to 128 characters with no composition rules, counted in characters. They are hashed with Argon2id (argon2-cffi defaults) behind a `PasswordHasher` port, and the hash is stored in `users.password_hash`, which is nullable for accounts without a password.
+- An email is valid when, after trimming, it has one `@`, a non-empty local part, a domain of at least two non-empty dot-separated labels, no whitespace and at most 254 characters. The address is stored as typed; uniqueness ignores case (D-055). There is no deliverability check, since v1 sends no email (D-031).
+- Sign-up answers 409 `email_taken` for an existing email, so it reveals that the email is registered (D-030 asks for that message). The duplicate check runs before the password is judged or hashed.
+- The response is 201 `{user: {id, email}}`; E02-S03 adds the tokens.
+- Request bodies are not logged; the password field is excluded from repr output.
+
+**Options considered**
+
+- **Full RFC 5322 email validation or an email-validator package:** stricter, but adds a dependency and rejects nothing useful in v1. Rejected.
+- **Hide whether an email exists (always 201):** better privacy, but contradicts D-030 and needs email to be useful. Rejected.
+- **Composition rules (digits, symbols):** rejected by the owner brief.
+
+**Consequences:** the 254 limit and the dotted-domain rule can be loosened by one function (`clean_email`). Tightening rate limits against account enumeration is not part of v1.
