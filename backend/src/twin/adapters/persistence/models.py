@@ -25,6 +25,7 @@ class UserModel(Base):
 
     id: Mapped[UUID] = mapped_column(primary_key=True)
     email: Mapped[str] = mapped_column(Text)
+    password_hash: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
     # The database refuses two emails that differ only by case (see migration 0002).
