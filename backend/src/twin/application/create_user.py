@@ -8,12 +8,14 @@ from twin.application.ports.accounts import (
     VaultRepository,
 )
 from twin.application.ports.clock import Clock
+from twin.application.ports.security import PasswordHasher
 from twin.domain.accounts import (
     ROOT_FOLDER_NAME,
     EmailTaken,
     Folder,
     User,
     Vault,
+    check_password,
     clean_email,
 )
 
@@ -35,19 +37,27 @@ class CreateUser:
         folders: FolderRepository,
         uow: UnitOfWork,
         clock: Clock,
+        hasher: PasswordHasher,
     ) -> None:
         self._users = users
         self._vaults = vaults
         self._folders = folders
         self._uow = uow
         self._clock = clock
+        self._hasher = hasher
 
-    def __call__(self, email: str) -> NewAccount:
+    def __call__(self, email: str, password: str) -> NewAccount:
         email = clean_email(email)
+        check_password(password)
         if self._users.get_by_email(email) is not None:
             raise EmailTaken("An account with this email already exists.")
         now = self._clock.now()
-        user = User(id=uuid4(), email=email, created_at=now)
+        user = User(
+            id=uuid4(),
+            email=email,
+            created_at=now,
+            password_hash=self._hasher.hash(password),
+        )
         vault = Vault(id=uuid4(), owner_id=user.id, created_at=now)
         root = Folder(
             id=uuid4(),
