@@ -40,6 +40,12 @@ class MemoryUserRepository:
                 return user
         return None
 
+    def get_by_google_subject(self, subject: str) -> User | None:
+        for user in [*self._store.users, *self._pending.users]:
+            if user.google_subject == subject:
+                return user
+        return None
+
 
 class MemoryRefreshTokenRepository:
     """Works on a copy of the stored tokens; `MemoryUnitOfWork.commit` publishes it."""

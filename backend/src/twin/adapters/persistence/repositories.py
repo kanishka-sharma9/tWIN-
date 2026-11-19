@@ -83,6 +83,12 @@ class SqlUserRepository:
         row = self._session.get(UserRow, user_id)
         return _user(row) if row else None
 
+    def get_by_google_subject(self, subject: str) -> User | None:
+        row = self._session.scalar(
+            select(UserRow).where(UserRow.google_subject == subject)
+        )
+        return _user(row) if row else None
+
 
 class SqlRefreshTokenRepository:
     def __init__(self, session: Session) -> None:
