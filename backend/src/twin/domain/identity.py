@@ -6,7 +6,7 @@ from twin.domain.errors import DomainError
 class ProviderDisabled(DomainError):
     """The sign-in provider is not configured on this server."""
 
-    code = "provider_disabled"
+    code = "not_found"
 
 
 class IdentityRejected(DomainError):
@@ -22,7 +22,7 @@ class AccountExists(DomainError):
 
 
 @dataclass(frozen=True)
-class ExternalIdentity:
+class VerifiedIdentity:
     """A verified person according to the provider: stable subject plus a verified email."""
 
     subject: str

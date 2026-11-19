@@ -1,6 +1,6 @@
 from typing import Protocol
 
-from twin.domain.identity import ExternalIdentity
+from twin.domain.identity import VerifiedIdentity
 
 
 class IdentityProvider(Protocol):
@@ -10,7 +10,7 @@ class IdentityProvider(Protocol):
         """Where to send the browser. `code_challenge` is the S256 challenge."""
         ...
 
-    def exchange(self, code: str, code_verifier: str) -> ExternalIdentity:
+    def exchange(self, code: str, code_verifier: str) -> VerifiedIdentity:
         """Swap the code for the person's identity.
 
         Raises `IdentityRejected` when the code is refused or any ID token check fails,

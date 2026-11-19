@@ -3,11 +3,11 @@ from collections.abc import Callable
 from twin.application.create_user import CreateUser
 from twin.application.ports.unit_of_work import UnitOfWork
 from twin.domain.email import Email, InvalidEmail
-from twin.domain.identity import AccountExists, ExternalIdentity, IdentityRejected
+from twin.domain.identity import AccountExists, IdentityRejected, VerifiedIdentity
 from twin.domain.vault import EmailTaken, User
 
 
-class GoogleSignIn:
+class SignInWithGoogle:
     """Finds or creates the account behind a verified Google identity (D-030: never links)."""
 
     def __init__(
@@ -16,7 +16,7 @@ class GoogleSignIn:
         self._uow_factory = uow_factory
         self._create_user = create_user
 
-    def execute(self, identity: ExternalIdentity) -> User:
+    def execute(self, identity: VerifiedIdentity) -> User:
         try:
             email = Email(identity.email)
         except InvalidEmail as error:
