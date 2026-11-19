@@ -63,7 +63,7 @@ Every product and technical decision for the dual-name file explorer, with the o
 | D-051 | Where the version pins live | Accepted |
 | D-052 | How the theme colours are applied | Accepted |
 | D-053 | Typeface, icon set, theme variant and API client libraries | Proposed |
-| D-054 | TypeScript pinned to 6.0 for typescript-eslint | Accepted |
+| D-054 | TypeScript pinned to 5.9 for typescript-eslint and openapi-typescript | Accepted |
 
 ---
 
@@ -870,16 +870,16 @@ Gaps that no earlier decision covered, put to the owner on 2026-11-11.
 
 *Update 2026-11-12:* E01-S05 was built on the typeface, icon set and single theme as proposed, and E01-S06 on the API client libraries, under the owner's instruction to proceed without questions. This entry stays Proposed until the owner confirms or changes it.
 
-### D-054 TypeScript pinned to 6.0 for typescript-eslint
+### D-054 TypeScript pinned to 5.9 for typescript-eslint and openapi-typescript
 
 **Status:** Accepted on 2026-11-12 (decided while building E01-S04, under the owner's instruction to proceed without questions)
 
-**Decision:** `frontend/` uses TypeScript `~6.0`. Vite's template ships TypeScript 7, but typescript-eslint 8 declares support for `>=4.8.4 <6.1.0`, and D-038 needs its type-aware rules (`no-floating-promises`, `no-misused-promises`).
+**Decision:** `frontend/` uses TypeScript `~5.9`. Vite's template ships TypeScript 7, but typescript-eslint 8 declares support for `>=4.8.4 <6.1.0` (D-038 needs its type-aware rules, `no-floating-promises` and `no-misused-promises`) and openapi-typescript 7 (D-053, E01-S06) declares `^5`. Only 5.x satisfies both.
 
 **Options considered**
 
-- **TypeScript 6.0 (chosen):** every peer dependency resolves cleanly, with no flags.
+- **TypeScript 5.9 (chosen):** every peer dependency resolves cleanly, with no flags. 6.0 satisfied typescript-eslint but not openapi-typescript.
 - **TypeScript 7 with `--legacy-peer-deps`:** newer and faster, but the type-aware lint rules run on an unsupported compiler.
 - **Drop the type-aware rules:** removes the reason for ESLint in D-038.
 
-**Consequences:** move to TypeScript 7 once typescript-eslint supports it; the change is one line in `frontend/package.json`.
+**Consequences:** move to a newer TypeScript once both typescript-eslint and openapi-typescript support it; the change is one line in `frontend/package.json`.

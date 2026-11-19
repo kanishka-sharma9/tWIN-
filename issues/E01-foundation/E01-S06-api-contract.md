@@ -1,7 +1,7 @@
 # E01-S06 API contract and typed client
 
 - **Epic:** E01 Foundation
-- **Status:** Draft (spec complete; waits for D-053's library choice to be confirmed)
+- **Status:** Done
 - **Depends on:** E01-S02, E01-S04
 - **Decisions:** D-024, D-029, D-037, D-053 (Proposed)
 - **Flows:** FLOWS.md 1
@@ -59,3 +59,17 @@ Login and the real `refresh()` (E02-S03), the full list of error codes (each fea
 ## Open questions
 
 - Confirm D-053's choice of `openapi-typescript` plus `openapi-fetch`. The alternative is hand-wrapping `fetch` around the generated types: fewer dependencies, more code to maintain.
+
+## Notes
+
+- The open question (D-053's `openapi-typescript` + `openapi-fetch`) was not put to the owner (instruction: proceed without questions); it was built as proposed. D-053 stays **Proposed**.
+- openapi-typescript 7 needs TypeScript `^5`, while typescript-eslint needs `<6.1`, so TypeScript moves from 6.0 to 5.9 (D-054 updated).
+- **Bug found and fixed, present since E01-S04:** `npm run typecheck` ran `tsc --noEmit` against a root `tsconfig.json` that only lists references, so it checked nothing. It now runs `tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json`, and `build` calls it. That exposed real errors in `tokens.test.ts` (Node types missing), fixed by adding `node` to `types`.
+- `unwrap()` is typed from the generated schema. A first version inferred `any`, which would have hidden backend schema changes; a probe (`const n: number = useHealth().data`) now errors as it should.
+- Criterion 1 was checked by hand: renaming `database` to `db` in the health response, running `npm run api:types` and `npm run typecheck` fails with `Property 'database' does not exist`; the change was then reverted.
+- Criteria 3 (backend): `tests/api/test_errors.py` covers a domain error, a validation failure with `details.fields`, an unknown route (404), a wrong method (405) and an unhandled exception (500, no traceback or message leaked).
+- Criteria 2, 4 and 5 (frontend): `src/api/client.test.ts` and `src/pages/Health.test.tsx` cover the code reaching the UI (`pair_taken`), the Bearer header, one refresh and one retry, two simultaneous 401s sharing one refresh, and a failed refresh logging out.
+- Criterion 6: CI's Python job re-exports the schema and runs `git diff --exit-code` on `openapi.json`; the web job regenerates `schema.d.ts` and diffs it. Both were simulated locally on a clean tree.
+- `openapi-fetch` needs an absolute URL outside the browser, so the client's `baseUrl` is `location.origin` (or `http://localhost` when there is no `location`).
+- `STATUS_BY_ERROR` is checked in insertion order, so feature stories should list more specific error classes first.
+- Browser check, done with Playwright Chromium against `npm run dev`, the API and the database, at 1280 px and 375 px: the page shows "API: ok, database: up" through the typed client, with no horizontal overflow. From the page, an unknown route returned 404 with `code: "not_found"` and a POST to `/api/health` returned 405 with `code: "method_not_allowed"`, both in the one error shape. With the API stopped, the page shows "Something went wrong. Please try again." (the dev proxy answers 502, which the browser also logs as a console error). Screenshots and videos were kept locally in `.verification/` (git-ignored).

@@ -53,6 +53,9 @@ jobs:
       - run: uv run mypy
       - run: uv run alembic upgrade head
       - run: uv run pytest
+      # The committed OpenAPI schema must match what the backend produces.
+      - run: uv run twin export-openapi
+      - run: git diff --exit-code -- ../frontend/src/api/openapi.json
 
   web:
     name: Web
@@ -82,6 +85,11 @@ jobs:
 
       - if: steps.detect.outputs.present == 'true'
         run: npm ci
+      # The committed TypeScript types must match the committed OpenAPI schema.
+      - if: steps.detect.outputs.present == 'true'
+        run: npm run api:generate
+      - if: steps.detect.outputs.present == 'true'
+        run: git diff --exit-code -- src/api/schema.d.ts
       - if: steps.detect.outputs.present == 'true'
         run: npx biome ci --reporter=github
       - if: steps.detect.outputs.present == 'true'
