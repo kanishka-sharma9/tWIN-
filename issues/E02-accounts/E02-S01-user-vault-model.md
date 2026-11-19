@@ -1,7 +1,7 @@
 # E02-S01 User and vault model
 
 - **Epic:** E02 Accounts and login
-- **Status:** Draft
+- **Status:** Done
 - **Depends on:** E01-S03
 - **Decisions:** D-009, D-024
 - **Flows:** FLOWS.md 2.1
