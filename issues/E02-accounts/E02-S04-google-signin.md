@@ -1,7 +1,7 @@
 # E02-S04 Google sign-in
 
 - **Epic:** E02 Accounts and login
-- **Status:** Ready
+- **Status:** Done
 - **Depends on:** E02-S03
 - **Decisions:** D-010, D-029, D-030, D-058 (Proposed)
 - **Flows:** FLOWS.md 2.3
