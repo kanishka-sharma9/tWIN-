@@ -13,6 +13,12 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from twin.domain.accounts import (
+    EmailTaken,
+    InvalidEmail,
+    NotAuthenticated,
+    VaultNotFound,
+)
 from twin.domain.errors import DomainError
 
 logger = logging.getLogger(__name__)
@@ -32,7 +38,12 @@ class ErrorResponse(BaseModel):
 
 # The one table mapping domain error classes to an HTTP status. Each feature story adds its
 # own rows; an error class that is not listed answers 400.
-STATUS_BY_ERROR: dict[type[DomainError], int] = {}
+STATUS_BY_ERROR: dict[type[DomainError], int] = {
+    NotAuthenticated: 401,
+    VaultNotFound: 403,
+    EmailTaken: 409,
+    InvalidEmail: 422,
+}
 
 _CODE_BY_STATUS = {
     400: "bad_request",
