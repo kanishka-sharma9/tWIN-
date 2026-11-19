@@ -46,7 +46,7 @@ Start with E01-S09, which moves the project into `backend/` and `frontend/`. The
 
 | ID | Epic | Outcome | Stories | Status |
 |---|---|---|---|---|
-| [E01](E01-foundation/EPIC.md) | Foundation | A developer can start the database, API and web app with documented commands and run every check. | 9 | Planned |
+| [E01](E01-foundation/EPIC.md) | Foundation | A developer can start the database, API and web app with documented commands and run every check. | 9 | Done |
 | [E02](E02-accounts/EPIC.md) | Accounts and login | A person can create an account with email + password or Google, gets a private vault, and stays logged in. | 8 | Draft |
 | [E03](E03-naming-core/EPIC.md) | Naming core | The dual-name rule is enforced in one place and cannot be bypassed, even by simultaneous requests. | 3 | Draft |
 | [E04](E04-folders/EPIC.md) | Folders | Users can build and rearrange a folder tree like Explorer's. | 4 | Draft |

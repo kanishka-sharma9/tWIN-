@@ -1,0 +1,44 @@
+/*
+ * The only file allowed to contain colour values (D-052, D-053).
+ * Base tokens are the three identity colours; semantic tokens name what they are
+ * used for and refer to base tokens only through var(), so changing a base token
+ * recolours the whole app. See docs/theme.md.
+ */
+:root {
+	/* Base tokens */
+	--oxblood: #4a0e1b;
+	--rose: #e3b5ae;
+	--cyan: #00e5ff;
+
+	/* Derived tints */
+	/* Cards and dialogs on the oxblood page. */
+	--oxblood-raised: #5c1424;
+	/* Input wells. */
+	--oxblood-sunken: #3a0914;
+	/* Secondary text; still passes AA on oxblood and on oxblood-raised. */
+	--rose-muted: #cfa19a;
+	/* Borders and dividers (decoration, not text). */
+	--rose-line: rgb(227 181 174 / 0.25);
+	/* Pressed or disabled cyan. */
+	--cyan-dim: #00a9bd;
+	/* Row selection fill; carries a cyan edge. */
+	--oxblood-selected: #6e1a2e;
+	/* Status colour that works on oxblood (errors, destructive actions). */
+	--amber: #ffb020;
+
+	/* Semantic tokens: components use these, never the base colours directly. */
+	--background: var(--oxblood);
+	--foreground: var(--rose);
+	--surface: var(--oxblood-raised);
+	--navbar: var(--rose);
+	--navbar-foreground: var(--oxblood);
+	--hover: var(--rose);
+	--hover-foreground: var(--oxblood);
+	--primary: var(--cyan);
+	--primary-foreground: var(--oxblood);
+	--ring: var(--cyan);
+	--selection: var(--oxblood-selected);
+	--border: var(--rose-line);
+	--muted-foreground: var(--rose-muted);
+	--destructive: var(--amber);
+}

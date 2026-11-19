@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Status
 
-Planning is done; implementation has not started. The code is still the `uv init --package` scaffold: a FastAPI app (`twin.bootstrap.create_app`) with `GET /api/health`, the layer folders under `backend/src/twin/`, and an architecture test that enforces the import rules (E01-S02). A PostgreSQL 18 service in `docker-compose.yml`, SQLAlchemy and Alembic with an empty baseline migration, and `/api/health` reporting `database` up or down (E01-S03). A Vite + React + TypeScript app in `frontend/` with a placeholder health page, and CI's web job now runs (E01-S04). The Python checks, CI (`.github/workflows/ci.yml`) and dev container (`.devcontainer/`) are in place (E01-S08, D-041). Update this file as the stories in `issues/E01-foundation/` land.
+Epic E01 (Foundation) is built: a FastAPI app with `GET /api/health`, PostgreSQL 18 with Alembic migrations, a Vite + React + TypeScript frontend with the oxblood/rose/cyan theme tokens, one API error shape and a typed client generated from the OpenAPI schema, and test harnesses for pytest, Vitest and Playwright. CI (`.github/workflows/ci.yml`) and the dev container (`.devcontainer/`) are in place. There are no product features yet: accounts start with E02. Update this file as the stories in `issues/` land.
 
 ## What is being built
 
@@ -46,13 +46,30 @@ uv run pytest                # all tests
 uv run pytest tests/api/test_health.py::test_health_ok   # one test
 ```
 
-Frontend (D-038, in `frontend/`; run from there with Node 26 via nvm): `npm run dev` serves on 5173 and proxies `/api` to 8000. Biome formats and lints, ESLint holds only the type-aware typescript-eslint and react-hooks rules, and `tsc` type-checks. CI's web job runs `npx biome ci`, `npx eslint .`, `npm run typecheck`, `npm test` and `npm run build` inside `frontend/`, so `package.json` must define the `typecheck`, `test` and `build` scripts. Node is pinned in `frontend/.nvmrc`; the dev container's Node feature version must match it.
+Frontend (D-038, in `frontend/`; run from there with Node 26 via nvm): `npm run dev` serves on 5173 and proxies `/api` to 8000. `npm run api:types` regenerates `src/api/openapi.json` (from `uv run twin export-openapi`) and `src/api/schema.d.ts`; both are committed and CI fails if they are stale. API calls go through `src/api/client.ts` (`api` plus `unwrap`), which throws `ApiError` with the server's `code`; show text with `errorMessage()`. Every non-2xx response has the shape `{error: {code, message, details}}` (`adapters/api/errors.py`; domain errors subclass `twin.domain.errors.DomainError` and are mapped to a status in `STATUS_BY_ERROR`). Biome formats and lints, ESLint holds only the type-aware typescript-eslint and react-hooks rules, and `tsc` type-checks. CI's web job runs `npx biome ci`, `npx eslint .`, `npm run typecheck`, `npm test` and `npm run build` inside `frontend/`, so `package.json` must define the `typecheck`, `test` and `build` scripts. Node is pinned in `frontend/.nvmrc`; the dev container's Node feature version must match it.
 
 The checkout lives in the WSL filesystem (`/home/kanis/MultiID-folder-mgmt`). Run `uv` and `git` inside WSL rather than from Windows against the `\\wsl.localhost\...` path — Windows git rejects the repo with a "dubious ownership" error, and `uv` is installed on the WSL side. From a Windows shell:
 
 ```bash
 wsl -d Ubuntu -e bash -lc 'cd ~/MultiID-folder-mgmt/backend && uv run twin'
 ```
+
+## Test and check commands (E01-S07)
+
+| What | Where | Command |
+|---|---|---|
+| All backend tests | `backend/` | `uv run pytest` |
+| Fast rule tests only (no database) | `backend/` | `uv run pytest -m unit` |
+| One backend test | `backend/` | `uv run pytest tests/api/test_health.py::test_health_ok` |
+| Backend lint and types | `backend/` | `uv run ruff format --check && uv run ruff check && uv run ty check && uv run mypy` |
+| Frontend unit tests | `frontend/` | `npm test` |
+| One frontend test | `frontend/` | `npx vitest run src/pages/Health.test.tsx -t "database down"` |
+| Frontend lint and types | `frontend/` | `npx biome ci && npx eslint . && npm run typecheck` |
+| Browser tests (API and database running) | `frontend/` | `npm run e2e` |
+| Browser tests, starting the database and API too | `frontend/` | `npm run e2e:full` |
+| One browser test, one project | `frontend/` | `npx playwright test e2e/smoke.spec.ts --project=firefox-phone` |
+
+Backend tests that touch the database need the `db` container running (`docker compose up -d db`); `-m unit` does not. Browser tests need a one-time `npx playwright install --with-deps` (it uses `sudo` for system libraries). The six Playwright projects are Chromium, Firefox and WebKit at desktop (1280x800) and phone (390x844) sizes; WebKit stands in for Safari (D-044). Playwright is not run in CI yet (E09-S01, D-041).
 
 ## Layout
 
