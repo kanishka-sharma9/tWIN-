@@ -4,10 +4,11 @@ import httpx
 import jwt
 
 from twin.application.ports.clock import Clock
-from twin.domain.identity import ExternalIdentity, IdentityRejected
+from twin.domain.identity import IdentityRejected, VerifiedIdentity
 
 AUTHORIZATION_ENDPOINT = "https://accounts.google.com/o/oauth2/v2/auth"
 TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token"
+JWKS_URI = "https://www.googleapis.com/oauth2/v3/certs"
 ISSUERS = frozenset({"https://accounts.google.com", "accounts.google.com"})
 TIMEOUT_SECONDS = 10.0
 
@@ -19,8 +20,8 @@ def _rejected() -> IdentityRejected:
 class GoogleIdentityProvider:
     """Google as an `IdentityProvider`: authorization code with PKCE, backend to backend.
 
-    The ID token comes straight from the token endpoint over TLS in answer to our own
-    request, so its signature is not checked (OpenID Connect Core 3.1.3.7); its claims are.
+    The ID token is verified against Google's published signing keys (RS256, fetched from
+    `JWKS_URI` and kept until a token names a key we do not have), then its claims are checked.
     """
 
     def __init__(
@@ -36,6 +37,7 @@ class GoogleIdentityProvider:
         self._redirect_uri = redirect_uri
         self._clock = clock
         self._http = client or httpx.Client(timeout=TIMEOUT_SECONDS)
+        self._keys: dict[str, jwt.PyJWK] = {}
 
     def authorization_url(self, state: str, code_challenge: str) -> str:
         query = urlencode(
@@ -52,7 +54,7 @@ class GoogleIdentityProvider:
         )
         return f"{AUTHORIZATION_ENDPOINT}?{query}"
 
-    def exchange(self, code: str, code_verifier: str) -> ExternalIdentity:
+    def exchange(self, code: str, code_verifier: str) -> VerifiedIdentity:
         try:
             response = self._http.post(
                 TOKEN_ENDPOINT,
@@ -69,13 +71,27 @@ class GoogleIdentityProvider:
             id_token = response.json()["id_token"]
             claims = jwt.decode(
                 id_token,
-                options={"verify_signature": False, "verify_exp": False},
+                self._signing_key(id_token),
+                algorithms=["RS256"],
+                options={"verify_exp": False, "verify_aud": False, "verify_iss": False},
             )
         except httpx.HTTPError, KeyError, ValueError, TypeError, jwt.PyJWTError:
             raise _rejected() from None
         return self._check(claims)
 
-    def _check(self, claims: dict[str, object]) -> ExternalIdentity:
+    def _signing_key(self, id_token: str) -> jwt.PyJWK:
+        """The RSA public key that Google's key set lists for the token's `kid`."""
+        kid = jwt.get_unverified_header(id_token)["kid"]
+        if kid not in self._keys:
+            response = self._http.get(JWKS_URI)
+            response.raise_for_status()
+            self._keys = {
+                str(key["kid"]): jwt.PyJWK.from_dict(key)
+                for key in response.json()["keys"]
+            }
+        return self._keys[kid]
+
+    def _check(self, claims: dict[str, object]) -> VerifiedIdentity:
         exp = claims.get("exp")
         audience = claims.get("aud")
         subject = claims.get("sub")
@@ -95,4 +111,4 @@ class GoogleIdentityProvider:
             and email
         ):
             raise _rejected()
-        return ExternalIdentity(subject, email)
+        return VerifiedIdentity(subject, email)
