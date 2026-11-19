@@ -18,6 +18,7 @@ class Email:
         local, at, domain = value.rpartition("@")
         if (
             not at
+            or "@" in local
             or not local
             or "." not in domain
             or domain.startswith(".")

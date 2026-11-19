@@ -55,3 +55,5 @@ def test_a_credential_is_required() -> None:
     create_user, _ = make()
     with pytest.raises(ValueError, match="password hash or a Google subject"):
         create_user.execute("ada@example.com")
+    with pytest.raises(ValueError, match="password hash or a Google subject"):
+        create_user.execute("ada@example.com", password_hash="")
