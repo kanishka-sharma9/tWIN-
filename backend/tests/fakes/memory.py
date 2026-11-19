@@ -1,8 +1,11 @@
+from dataclasses import replace
+from datetime import datetime
 from types import TracebackType
 from typing import Self
 from uuid import UUID
 
 from twin.domain.email import Email
+from twin.domain.session import RefreshToken
 from twin.domain.vault import CurrentVault, EmailTaken, Folder, User, Vault
 
 
@@ -13,6 +16,7 @@ class MemoryStore:
         self.users: list[User] = []
         self.vaults: list[Vault] = []
         self.folders: list[Folder] = []
+        self.refresh_tokens: dict[UUID, RefreshToken] = {}
 
 
 class MemoryUserRepository:
@@ -29,6 +33,36 @@ class MemoryUserRepository:
             if user.email.key == email.key:
                 return user
         return None
+
+    def get_by_id(self, user_id: UUID) -> User | None:
+        for user in [*self._store.users, *self._pending.users]:
+            if user.id == user_id:
+                return user
+        return None
+
+
+class MemoryRefreshTokenRepository:
+    """Works on a copy of the stored tokens; `MemoryUnitOfWork.commit` publishes it."""
+
+    def __init__(self, tokens: dict[UUID, RefreshToken]) -> None:
+        self.tokens = tokens
+
+    def add(self, token: RefreshToken) -> None:
+        self.tokens[token.id] = token
+
+    def get_by_hash(self, token_hash: str) -> RefreshToken | None:
+        for token in self.tokens.values():
+            if token.token_hash == token_hash:
+                return token
+        return None
+
+    def mark_replaced(self, token_id: UUID, replaced_by: UUID) -> None:
+        self.tokens[token_id] = replace(self.tokens[token_id], replaced_by=replaced_by)
+
+    def revoke_family(self, family_id: UUID, at: datetime) -> None:
+        for token_id, token in list(self.tokens.items()):
+            if token.family_id == family_id and token.revoked_at is None:
+                self.tokens[token_id] = replace(token, revoked_at=at)
 
 
 class MemoryVaultRepository:
@@ -65,6 +99,7 @@ class MemoryUnitOfWork:
         self._pending = MemoryStore()
         self.users = MemoryUserRepository(store, self._pending)
         self.vaults = MemoryVaultRepository(store, self._pending)
+        self.refresh_tokens = MemoryRefreshTokenRepository(dict(store.refresh_tokens))
 
     def __enter__(self) -> Self:
         return self
@@ -81,6 +116,7 @@ class MemoryUnitOfWork:
         self._store.users.extend(self._pending.users)
         self._store.vaults.extend(self._pending.vaults)
         self._store.folders.extend(self._pending.folders)
+        self._store.refresh_tokens = dict(self.refresh_tokens.tokens)
         self._clear()
 
     def _clear(self) -> None:
