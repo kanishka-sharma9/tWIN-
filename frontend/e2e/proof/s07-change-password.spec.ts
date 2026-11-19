@@ -54,7 +54,8 @@ test("change password through Swagger UI", async ({ page }) => {
 	await expect(status(loginLive)).toHaveText(/200/);
 	await page.screenshot({ path: "e2e/test-results/s07-2-login.png" });
 	const text = await loginLive.locator(".microlight").first().textContent();
-	const token = (JSON.parse(text ?? "") as { access_token: string }).access_token;
+	const token = (JSON.parse(text ?? "") as { access_token: string })
+		.access_token;
 	expect(token.length).toBeGreaterThan(20);
 
 	// Authorize: Swagger UI adds "Bearer " itself; the field takes the bare token.
