@@ -101,6 +101,10 @@ uv run twin                       # API on http://127.0.0.1:8000/api/health
 
 The health endpoint answers `{"status": "ok", "database": "up"}`. Tests need the `db` container running; they use a separate `twin_test` database.
 
+## Google sign-in (optional)
+
+Off by default; email and password works without it. To switch it on, follow [docs/google-oauth-setup.md](docs/google-oauth-setup.md).
+
 ## Running the web app
 
 With the database and API running (see above):
