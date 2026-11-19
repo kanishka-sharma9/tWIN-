@@ -34,7 +34,10 @@ def email(settings: Settings) -> Iterator[str]:
 
 
 def signup(client: TestClient, email: str, password: str = PASSWORD) -> Response:
-    return client.post("/api/auth/signup", json={"email": email, "password": password})
+    response: Response = client.post(
+        "/api/auth/signup", json={"email": email, "password": password}
+    )
+    return response
 
 
 def test_valid_sign_up_creates_user_and_vault(
