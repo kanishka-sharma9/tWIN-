@@ -1,6 +1,6 @@
 from urllib.parse import urlencode
 
-from twin.domain.identity import ExternalIdentity, IdentityRejected
+from twin.domain.identity import IdentityRejected, VerifiedIdentity
 
 
 class FakeIdentityProvider:
@@ -10,7 +10,7 @@ class FakeIdentityProvider:
     """
 
     def __init__(self) -> None:
-        self.codes: dict[str, ExternalIdentity] = {}
+        self.codes: dict[str, VerifiedIdentity] = {}
         self.exchanges: list[tuple[str, str]] = []
 
     def authorization_url(self, state: str, code_challenge: str) -> str:
@@ -23,7 +23,7 @@ class FakeIdentityProvider:
         )
         return f"https://idp.test/authorize?{query}"
 
-    def exchange(self, code: str, code_verifier: str) -> ExternalIdentity:
+    def exchange(self, code: str, code_verifier: str) -> VerifiedIdentity:
         self.exchanges.append((code, code_verifier))
         identity = self.codes.get(code)
         if identity is None:

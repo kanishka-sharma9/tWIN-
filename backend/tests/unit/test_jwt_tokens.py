@@ -47,7 +47,7 @@ def test_a_token_expires_after_fifteen_minutes_on_the_clock() -> None:
 def test_missing_malformed_and_foreign_tokens_authenticate_nobody() -> None:
     tokens, _ = make()
     claims = {"sub": str(uuid4()), "iat": 1, "exp": 4_000_000_000}
-    unsigned = jwt.encode(claims, None, algorithm="none")
+    unsigned = jwt.encode(claims, "", algorithm="none")
     wrong_key = jwt.encode(claims, "another-secret-" * 4, algorithm="HS256")
     no_exp = jwt.encode({"sub": str(uuid4())}, SECRET, algorithm="HS256")
     not_a_uuid = jwt.encode({**claims, "sub": "nope"}, SECRET, algorithm="HS256")

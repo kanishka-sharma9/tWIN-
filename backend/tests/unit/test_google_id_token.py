@@ -6,6 +6,8 @@ from urllib.parse import parse_qs, urlsplit
 import httpx
 import jwt
 import pytest
+from cryptography.hazmat.primitives.asymmetric import rsa
+from jwt.algorithms import RSAAlgorithm
 from tests.fakes.clock import FixedClock
 
 from twin.adapters.auth.google_identity import GoogleIdentityProvider
@@ -15,11 +17,39 @@ from twin.adapters.auth.oauth_state import (
     code_challenge,
     new_state,
 )
-from twin.domain.identity import ExternalIdentity, IdentityRejected
+from twin.domain.identity import IdentityRejected, VerifiedIdentity
 
 CLIENT_ID = "client-123.apps.googleusercontent.com"
 NOW = datetime(2026, 6, 1, tzinfo=UTC)
-KEY = "irrelevant-key-0123456789-abcdefgh"
+GOOGLE_KEY = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+OTHER_KEY = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+KID = "google-key-1"
+
+
+def jwks(kid: str = KID) -> dict[str, object]:
+    jwk = RSAAlgorithm.to_jwk(GOOGLE_KEY.public_key(), as_dict=True)
+    return {"keys": [{**jwk, "kid": kid, "alg": "RS256", "use": "sig"}]}
+
+
+def sign(payload: dict[str, object], key: rsa.RSAPrivateKey = GOOGLE_KEY) -> str:
+    return jwt.encode(payload, key, algorithm="RS256", headers={"kid": KID})
+
+
+def google(
+    id_token: str, jwks_kid: str = KID, seen: list[httpx.Request] | None = None
+) -> httpx.MockTransport:
+    """Token endpoint answering with `id_token`; the certs endpoint with Google's key."""
+
+    def respond(request: httpx.Request) -> httpx.Response:
+        if seen is not None:
+            seen.append(request)
+        if request.url.path.endswith("/certs"):
+            return httpx.Response(200, json=jwks(jwks_kid))
+        return httpx.Response(200, json={"id_token": id_token})
+
+    return httpx.MockTransport(respond)
+
+
 SECRET = "a-secret-0123456789-abcdefghijklmnop"
 
 
@@ -48,13 +78,10 @@ def provider(
 
 
 def returning(payload: dict[str, object]) -> httpx.MockTransport:
-    token = jwt.encode(payload, KEY, "HS256")
-    return httpx.MockTransport(
-        lambda request: httpx.Response(200, json={"id_token": token})
-    )
+    return google(sign(payload))
 
 
-def exchange_with(payload: dict[str, object]) -> ExternalIdentity:
+def exchange_with(payload: dict[str, object]) -> VerifiedIdentity:
     return provider(returning(payload)).exchange("code", "verifier")
 
 
@@ -73,17 +100,10 @@ def test_authorization_url_carries_state_and_an_s256_challenge() -> None:
 
 def test_exchange_posts_the_code_and_verifier_and_returns_the_identity() -> None:
     seen: list[httpx.Request] = []
-    token = jwt.encode(claims(), KEY, "HS256")
-
-    def respond(request: httpx.Request) -> httpx.Response:
-        seen.append(request)
-        return httpx.Response(200, json={"id_token": token})
-
-    identity = provider(httpx.MockTransport(respond)).exchange(
-        "the-code", "the-verifier"
-    )
+    transport = google(sign(claims()), seen=seen)
+    identity = provider(transport).exchange("the-code", "the-verifier")
     assert (identity.subject, identity.email) == ("1234567890", "ada@example.com")
-    form = parse_qs(seen[0].content.decode())
+    form = parse_qs(next(r for r in seen if r.method == "POST").content.decode())
     assert form["code"] == ["the-code"]
     assert form["code_verifier"] == ["the-verifier"]
     assert form["client_secret"] == ["shh"]
@@ -176,3 +196,34 @@ def test_state_cookie_rejects_tampering_other_keys_and_access_tokens() -> None:
     assert cookie.load("") is None
     access = jwt.encode({"sub": "u", "exp": 4102444800}, SECRET, "HS256")
     assert cookie.load(access) is None
+
+
+def test_authorization_url_never_contains_the_client_secret() -> None:
+    url = provider(returning(claims())).authorization_url("st", "chal")
+    assert "shh" not in url
+    assert "client_secret" not in url
+
+
+def test_token_signed_with_another_key_is_rejected() -> None:
+    forged = sign(claims(), key=OTHER_KEY)
+    with pytest.raises(IdentityRejected):
+        provider(google(forged)).exchange("c", "v")
+
+
+def test_unsigned_token_is_rejected() -> None:
+    unsigned = jwt.encode(claims(), "", algorithm="none", headers={"kid": KID})
+    with pytest.raises(IdentityRejected):
+        provider(google(unsigned)).exchange("c", "v")
+
+
+def test_token_with_a_key_id_google_does_not_list_is_rejected() -> None:
+    with pytest.raises(IdentityRejected):
+        provider(google(sign(claims()), jwks_kid="rotated-away")).exchange("c", "v")
+
+
+def test_signing_keys_are_fetched_once_and_reused() -> None:
+    seen: list[httpx.Request] = []
+    google_provider = provider(google(sign(claims()), seen=seen))
+    google_provider.exchange("c", "v")
+    google_provider.exchange("c", "v")
+    assert sum(r.url.path.endswith("/certs") for r in seen) == 1
