@@ -9,7 +9,7 @@ from tests.fakes.clock import FixedClock
 from tests.fakes.security import FakePasswordHasher
 
 from twin.application.create_user import CreateUser
-from twin.domain.accounts import EmailTaken, Folder, InvalidEmail
+from twin.domain.accounts import EmailTaken, Folder, InvalidEmail, WeakPassword
 
 PASSWORD = "correct horse battery"
 
@@ -79,3 +79,29 @@ def test_failure_midway_rolls_back() -> None:
         create("a@b.co", PASSWORD)
     assert uow.rollbacks == 1
     assert uow.commits == 0
+
+
+def test_stores_a_hash_not_the_password() -> None:
+    create, users, *_ = make()
+    account = create("ada@example.com", PASSWORD)
+    stored = users.get(account.user.id)
+    assert stored is not None
+    assert stored.password_hash == FakePasswordHasher().hash(PASSWORD)
+    assert stored.password_hash != PASSWORD
+    assert PASSWORD not in repr(stored)
+
+
+def test_weak_password_creates_nothing() -> None:
+    create, users, vaults, _, uow = make()
+    with pytest.raises(WeakPassword):
+        create("ada@example.com", "short")
+    assert not users.rows
+    assert not vaults.rows
+    assert uow.commits == 0
+
+
+def test_duplicate_email_is_reported_before_the_password_is_judged() -> None:
+    create, *_ = make()
+    create("ada@example.com", PASSWORD)
+    with pytest.raises(EmailTaken):
+        create("ADA@example.com", PASSWORD)
