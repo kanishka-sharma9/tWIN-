@@ -6,6 +6,7 @@ from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
+from httpx import Response
 from sqlalchemy import create_engine, delete, select
 from sqlalchemy.orm import Session
 
@@ -32,7 +33,7 @@ def email(settings: Settings) -> Iterator[str]:
     engine.dispose()
 
 
-def signup(client: TestClient, email: str, password: str = PASSWORD):
+def signup(client: TestClient, email: str, password: str = PASSWORD) -> Response:
     return client.post("/api/auth/signup", json={"email": email, "password": password})
 
 
