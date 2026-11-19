@@ -1,7 +1,7 @@
 # E02-S02 Sign up with email and password
 
 - **Epic:** E02 Accounts and login
-- **Status:** Draft
+- **Status:** Done
 - **Depends on:** E02-S01
 - **Decisions:** D-010, D-030
 - **Flows:** FLOWS.md 2.1

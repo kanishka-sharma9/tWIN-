@@ -65,6 +65,7 @@ Every product and technical decision for the dual-name file explorer, with the o
 | D-053 | Typeface, icon set, theme variant and API client libraries | Proposed |
 | D-054 | TypeScript pinned to 5.9 for typescript-eslint and openapi-typescript | Accepted |
 | D-059 | E02-S01 build choices: root folder name, credential rule, unit of work | Proposed |
+| D-060 | E02-S02 build choices: signup validation, hasher and logging | Proposed |
 
 ---
 
@@ -902,3 +903,20 @@ Gaps that no earlier decision covered, put to the owner on 2026-11-11.
 - Transaction: a `UnitOfWork` port (chosen, keeps the rule testable with fakes); each repository committing on its own (a failure could leave a user without a vault).
 
 **Consequences:** E04-S01 extends `folders`; E02-S03 replaces the null authenticator.
+
+### D-060 E02-S02 build choices: signup validation, hasher and logging
+
+**Status:** Proposed (decided while building E02-S02 under the instruction to proceed without questions)
+
+**Decision:**
+- Password length counts characters (Unicode code points), 10 to 128, no composition rules and no trimming (D-056). Both too short and too long answer 422 `weak_password` with `details.min_length` and `details.max_length`.
+- A bad email address answers 422 `validation_error` with `details.fields`, because the request model runs the `Email` rule; the `email_taken` check stays in `CreateUser`.
+- The request model holds the password as a `SecretStr`, `Password` hides its text from `repr`, and the validation error handler never echoes the submitted input, so the password cannot reach logs, errors or OpenAPI.
+- The Argon2id adapter uses the argon2-cffi defaults; `argon2-cffi` was vetted (old and widely used, last release over 500 days ago, flagged stale) and is allowed by the owner.
+
+**Options considered**
+
+- Length: characters (chosen, what a person counts); bytes (a 10-character password in some scripts would be refused).
+- Email error: `validation_error` (chosen, as the story specifies); the domain `invalid_email` code (still raised by use cases called outside HTTP).
+
+**Consequences:** E02-S03 reuses `PasswordHasher.verify` and `needs_rehash` for login.
