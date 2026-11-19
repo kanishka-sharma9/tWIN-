@@ -14,7 +14,12 @@ class SqlUserRepository:
 
     def add(self, user: User) -> None:
         self._session.add(
-            UserModel(id=user.id, email=user.email, created_at=user.created_at)
+            UserModel(
+                id=user.id,
+                email=user.email,
+                password_hash=user.password_hash,
+                created_at=user.created_at,
+            )
         )
         try:
             self._session.flush()
@@ -102,7 +107,12 @@ class SqlUnitOfWork:
 
 
 def _user(row: UserModel) -> User:
-    return User(id=row.id, email=row.email, created_at=row.created_at)
+    return User(
+        id=row.id,
+        email=row.email,
+        created_at=row.created_at,
+        password_hash=row.password_hash,
+    )
 
 
 def _folder(row: FolderModel) -> Folder:
