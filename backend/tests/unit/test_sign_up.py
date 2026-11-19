@@ -58,3 +58,11 @@ def test_second_sign_up_with_other_case_is_refused() -> None:
     with pytest.raises(EmailTaken):
         sign_up.execute("ADA@example.com", "another long one")
     assert len(store.users) == 1
+
+
+def test_an_email_already_registered_through_google_is_refused() -> None:
+    sign_up, store = make()
+    sign_up._create_user.execute("ada@example.com", google_subject="g-1")
+    with pytest.raises(EmailTaken):
+        sign_up.execute("Ada@Example.com", "a long password")
+    assert len(store.users) == 1
