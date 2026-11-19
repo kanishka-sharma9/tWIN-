@@ -12,9 +12,9 @@ from twin.adapters.auth.oauth_state import (
     code_challenge,
     new_state,
 )
-from twin.application.google_sign_in import GoogleSignIn
 from twin.application.ports.identity_provider import IdentityProvider
 from twin.application.sessions import Sessions
+from twin.application.sign_in_with_google import SignInWithGoogle
 from twin.domain.identity import AccountExists, IdentityRejected, ProviderDisabled
 from twin.settings import Settings
 
@@ -82,7 +82,7 @@ def google_callback(
     oauth_state: Annotated[str | None, Cookie()] = None,
 ) -> RedirectResponse:
     cookie: StateCookie = request.app.state.state_cookie
-    sign_in: GoogleSignIn = request.app.state.google_sign_in
+    sign_in: SignInWithGoogle = request.app.state.sign_in_with_google
     flow: OAuthState | None = cookie.load(oauth_state)
     # `error=access_denied` (the person said no) arrives without a code and lands here too.
     if (

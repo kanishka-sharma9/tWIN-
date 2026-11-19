@@ -16,9 +16,9 @@ from twin.adapters.persistence.session import create_session_factory
 from twin.adapters.ratelimit.memory_login_limiter import MemoryLoginLimiter
 from twin.adapters.system_clock import SystemClock
 from twin.application.create_user import CreateUser
-from twin.application.google_sign_in import GoogleSignIn
 from twin.application.ports.identity_provider import IdentityProvider
 from twin.application.sessions import Sessions
+from twin.application.sign_in_with_google import SignInWithGoogle
 from twin.application.sign_up import SignUp
 from twin.settings import Settings
 
@@ -54,7 +54,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         timedelta(days=settings.refresh_token_days),
     )
     create_user = CreateUser(app.state.uow_factory, clock)
-    app.state.google_sign_in = GoogleSignIn(app.state.uow_factory, create_user)
+    app.state.sign_in_with_google = SignInWithGoogle(app.state.uow_factory, create_user)
     app.state.state_cookie = StateCookie(settings.jwt_secret.get_secret_value(), clock)
     # None switches Google sign-in off: the routes answer 404 and /providers says false.
     identity_provider: IdentityProvider | None = None
