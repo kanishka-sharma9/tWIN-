@@ -13,7 +13,7 @@ from twin.adapters.persistence.accounts import (
     SqlVaultRepository,
 )
 from twin.application.create_user import CreateUser, NewAccount
-from twin.domain.accounts import EmailTaken, Folder, Vault
+from twin.domain.accounts import EmailTaken, Folder, User, Vault
 
 
 def create_user(session: Session, email: str) -> NewAccount:
