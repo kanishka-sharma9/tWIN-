@@ -952,15 +952,15 @@ Gaps that no earlier decision covered, put to the owner on 2026-11-11.
 **Decision:**
 - Authorization code with PKCE (S256) run by the backend with `httpx` (now a runtime dependency; vetted). Scope is `openid email`; `prompt=select_account` so a shared browser asks which Google account.
 - `state` and the PKCE verifier live in a signed httpOnly cookie `oauth_state` (HS256 JWT, key derived from `TWIN_JWT_SECRET`, own audience so it can never pass as an access token, 10 minutes, `Path=/api/auth/google`, `SameSite=Lax` because the callback is a top-level navigation from Google, `Secure` per `TWIN_COOKIE_SECURE`). The cookie is deleted by every callback answer, so a state cannot be replayed.
-- The ID token is read without checking its signature (OpenID Connect Core 3.1.3.7 allows this when it arrives straight from the token endpoint over TLS); issuer (either Google form), audience, expiry against the app clock, `email_verified` being `true`, and a non-empty subject and email are all required.
+- The ID token is verified against Google's signing keys (RS256, JWKS from `https://www.googleapis.com/oauth2/v3/certs`, fetched with `httpx`, kept in memory and refetched when a token names an unknown `kid`; needs the `pyjwt[crypto]` extra, i.e. `cryptography`, vetted); then issuer (either Google form), audience, expiry against the app clock, `email_verified` being `true`, and a non-empty subject and email are all required.
 - The account is found by `google_subject` first (so a changed Google email still lands in the same vault), then the email decides: an email that already has any account is refused (D-030), otherwise a user with no password hash and a vault are created. A lost race on the email also counts as "account exists".
 - Every callback failure is a 302 to the login page, not a JSON error: `?error=account_exists`, or `?error=google_failed` for bad or missing state, declined consent, a refused code or a failed ID token check. The UI (E02-S06) maps these two codes to messages. Success is a 302 to `/` with the refresh cookie set; the UI then calls `/api/auth/refresh` for an access token.
-- Google is enabled only when the client id, the secret and the redirect URI are all non-empty; otherwise `identity_provider` is `None`, `/api/auth/providers` says `{"google": false}` and the two Google routes answer 404 `provider_disabled`.
+- Google is enabled only when the client id, the secret and the redirect URI are all non-empty; otherwise `identity_provider` is `None`, `/api/auth/providers` says `{"google": false}` and the two Google routes answer 404 `not_found`.
 - Nothing about Google is reachable from tests: they swap in `FakeIdentityProvider`, and `GoogleIdentityProvider` is tested against `httpx.MockTransport`.
 
 **Options considered**
 
-- ID token signature: skip, claims only (chosen, spec-permitted and no JWKS fetch or cache); verify against Google's JWKS (stricter, more moving parts and another network call).
+- ID token signature: verify against Google's JWKS (chosen, the story requires it; adds `cryptography`); claims only (allowed by OIDC for a direct token-endpoint response, simpler).
 - State storage: signed cookie (chosen, no table); server-side table (revocable, needs a migration and cleanup); `itsdangerous` (new dependency for what PyJWT already does).
 - Failure form: redirect to login (chosen, the person is mid-navigation); JSON error (unreadable in a browser tab).
 

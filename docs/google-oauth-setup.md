@@ -53,4 +53,4 @@ If Google shows `redirect_uri_mismatch`, the URI in the console and `TWIN_GOOGLE
 ## How the API uses it
 
 - `GET /api/auth/google/start` redirects to Google with a random `state` and a PKCE S256 challenge. The `state` and the PKCE verifier travel in a signed, httpOnly, ten-minute cookie scoped to `/api/auth/google`.
-- `GET /api/auth/google/callback` checks the `state` against that cookie, exchanges the code with Google, and checks the ID token's issuer, audience, expiry and `email_verified`. A known Google subject logs in; a new subject with an unused email creates the account and vault; an email that already has an account is refused.
+- `GET /api/auth/google/callback` checks the `state` against that cookie, exchanges the code with Google, and checks the ID token's signature against Google's published keys, then its issuer, audience, expiry and `email_verified`. A known Google subject logs in; a new subject with an unused email creates the account and vault; an email that already has an account is refused.
