@@ -18,6 +18,7 @@ from twin.domain.accounts import (
     InvalidEmail,
     NotAuthenticated,
     VaultNotFound,
+    WeakPassword,
 )
 from twin.domain.errors import DomainError
 
@@ -43,6 +44,7 @@ STATUS_BY_ERROR: dict[type[DomainError], int] = {
     VaultNotFound: 403,
     EmailTaken: 409,
     InvalidEmail: 422,
+    WeakPassword: 422,
 }
 
 _CODE_BY_STATUS = {
