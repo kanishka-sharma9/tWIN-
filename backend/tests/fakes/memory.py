@@ -17,6 +17,7 @@ class MemoryStore:
         self.vaults: list[Vault] = []
         self.folders: list[Folder] = []
         self.refresh_tokens: dict[UUID, RefreshToken] = {}
+        self.password_hashes: dict[UUID, str] = {}  # changes waiting for commit
 
 
 class MemoryUserRepository:
@@ -28,17 +29,24 @@ class MemoryUserRepository:
             raise EmailTaken("taken")
         self._pending.users.append(user)
 
+    def _with_changes(self, user: User) -> User:
+        new_hash = self._pending.password_hashes.get(user.id)
+        return replace(user, password_hash=new_hash) if new_hash else user
+
     def get_by_email(self, email: Email) -> User | None:
         for user in [*self._store.users, *self._pending.users]:
             if user.email.key == email.key:
-                return user
+                return self._with_changes(user)
         return None
 
     def get_by_id(self, user_id: UUID) -> User | None:
         for user in [*self._store.users, *self._pending.users]:
             if user.id == user_id:
-                return user
+                return self._with_changes(user)
         return None
+
+    def set_password_hash(self, user_id: UUID, password_hash: str) -> None:
+        self._pending.password_hashes[user_id] = password_hash
 
     def get_by_google_subject(self, subject: str) -> User | None:
         for user in [*self._store.users, *self._pending.users]:
@@ -68,6 +76,17 @@ class MemoryRefreshTokenRepository:
     def revoke_family(self, family_id: UUID, at: datetime) -> None:
         for token_id, token in list(self.tokens.items()):
             if token.family_id == family_id and token.revoked_at is None:
+                self.tokens[token_id] = replace(token, revoked_at=at)
+
+    def revoke_user_families(
+        self, user_id: UUID, except_family: UUID | None, at: datetime
+    ) -> None:
+        for token_id, token in list(self.tokens.items()):
+            if (
+                token.user_id == user_id
+                and token.revoked_at is None
+                and token.family_id != except_family
+            ):
                 self.tokens[token_id] = replace(token, revoked_at=at)
 
 
@@ -123,9 +142,16 @@ class MemoryUnitOfWork:
         self._store.vaults.extend(self._pending.vaults)
         self._store.folders.extend(self._pending.folders)
         self._store.refresh_tokens = dict(self.refresh_tokens.tokens)
+        self._store.users = [
+            replace(u, password_hash=self._pending.password_hashes[u.id])
+            if u.id in self._pending.password_hashes
+            else u
+            for u in self._store.users
+        ]
         self._clear()
 
     def _clear(self) -> None:
         self._pending.users.clear()
         self._pending.vaults.clear()
         self._pending.folders.clear()
+        self._pending.password_hashes.clear()
