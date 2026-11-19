@@ -1,7 +1,10 @@
 """Declarative base. D-026: 2.0 `select()` style, no lazy loading, no ORM object leaves a repository."""
 
-from sqlalchemy import MetaData
-from sqlalchemy.orm import DeclarativeBase
+import uuid
+from datetime import datetime
+
+from sqlalchemy import DateTime, ForeignKey, Index, MetaData, Text, func, text
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 # Constraint names are fixed now because renaming unique indexes later is painful.
 NAMING_CONVENTION = {
@@ -15,3 +18,49 @@ NAMING_CONVENTION = {
 
 class Base(DeclarativeBase):
     metadata = MetaData(naming_convention=NAMING_CONVENTION)
+
+
+class UserRow(Base):
+    __tablename__ = "users"
+    __table_args__ = (
+        Index("uq_users_email_lower", func.lower(text("email")), unique=True),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True)
+    email: Mapped[str] = mapped_column(Text)
+    password_hash: Mapped[str | None] = mapped_column(Text)
+    google_subject: Mapped[str | None] = mapped_column(Text, unique=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
+class VaultRow(Base):
+    __tablename__ = "vaults"
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True)
+    owner_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), unique=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
+class FolderRow(Base):
+    __tablename__ = "folders"
+    __table_args__ = (
+        # Exactly one root (parent_id is null) per vault.
+        Index(
+            "uq_folders_vault_id_root",
+            "vault_id",
+            unique=True,
+            postgresql_where=text("parent_id is null"),
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True)
+    vault_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("vaults.id"))
+    parent_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("folders.id"))
+    name: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )

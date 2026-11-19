@@ -4,7 +4,9 @@ from fastapi import FastAPI
 
 from twin.adapters.api.errors import register_error_handlers
 from twin.adapters.api.router import api_router
+from twin.adapters.auth.null_authenticator import NullAuthenticator
 from twin.adapters.persistence.engine import create_db_engine
+from twin.adapters.persistence.repositories import SqlUnitOfWork
 from twin.adapters.persistence.session import create_session_factory
 from twin.settings import Settings
 
@@ -14,7 +16,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     engine = create_db_engine(settings.database_url)
     app = FastAPI(title="tWIN!!")
     app.state.settings = settings
-    app.state.session_factory = create_session_factory(engine)
+    session_factory = create_session_factory(engine)
+    app.state.session_factory = session_factory
+    app.state.uow_factory = lambda: SqlUnitOfWork(session_factory)
+    # Authenticates nobody until E02-S03 swaps in real sessions.
+    app.state.authenticator = NullAuthenticator()
     register_error_handlers(app)
     app.include_router(api_router, prefix="/api")
     return app
