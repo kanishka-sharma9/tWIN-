@@ -1,7 +1,7 @@
 # E02-S07 Change password
 
 - **Epic:** E02 Accounts and login
-- **Status:** Draft
+- **Status:** Done
 - **Depends on:** E02-S03
 - **Decisions:** D-029, D-042
 - **Flows:** FLOWS.md 2.4
