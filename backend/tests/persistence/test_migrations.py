@@ -22,8 +22,8 @@ def _version(url: str) -> str | None:
 def test_upgrade_downgrade_upgrade(test_database_url: str, alembic_cfg: Config) -> None:
     config = alembic_cfg
     command.upgrade(config, "head")
-    assert _version(test_database_url) == "0002_users_vaults_folders"
+    assert _version(test_database_url) == "0003_user_password_hash"
     command.downgrade(config, "base")
     assert _version(test_database_url) is None
     command.upgrade(config, "head")
-    assert _version(test_database_url) == "0002_users_vaults_folders"
+    assert _version(test_database_url) == "0003_user_password_hash"

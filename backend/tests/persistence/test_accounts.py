@@ -5,6 +5,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from tests.fakes.clock import FixedClock
+from tests.fakes.security import FakePasswordHasher
 
 from twin.adapters.persistence.accounts import (
     SqlFolderRepository,
@@ -23,7 +24,8 @@ def create_user(session: Session, email: str) -> NewAccount:
         SqlFolderRepository(session),
         SqlUnitOfWork(session),
         FixedClock(),
-    )(email)
+        FakePasswordHasher(),
+    )(email, "correct horse battery")
 
 
 def test_new_user_has_one_vault_with_a_root_folder(db_session: Session) -> None:

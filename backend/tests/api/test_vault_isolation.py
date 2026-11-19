@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session
 from tests.fakes.clock import FixedClock
+from tests.fakes.security import FakePasswordHasher
 
 from twin.adapters.api.dependencies import get_current_vault, get_folder_repository
 from twin.adapters.persistence.accounts import (
@@ -66,8 +67,12 @@ def accounts(settings: Settings) -> Iterator[tuple[NewAccount, NewAccount]]:
             SqlFolderRepository(session),
             SqlUnitOfWork(session),
             FixedClock(),
+            FakePasswordHasher(),
         )
-        created = [create("ada@isolation.test"), create("bob@isolation.test")]
+        created = [
+            create("ada@isolation.test", "correct horse battery"),
+            create("bob@isolation.test", "correct horse battery"),
+        ]
     yield created[0], created[1]
     with engine.begin() as connection:
         ids = [str(a.user.id) for a in created]
