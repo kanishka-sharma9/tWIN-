@@ -1,7 +1,7 @@
 # E02-S08 Developer password reset command
 
 - **Epic:** E02 Accounts and login
-- **Status:** Draft
+- **Status:** Done
 - **Depends on:** E02-S02
 - **Decisions:** D-031
 - **Flows:** FLOWS.md 2.5
