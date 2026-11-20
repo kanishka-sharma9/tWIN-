@@ -15,6 +15,7 @@ from twin.adapters.persistence.repositories import SqlUnitOfWork
 from twin.adapters.persistence.session import create_session_factory
 from twin.adapters.ratelimit.memory_login_limiter import MemoryLoginLimiter
 from twin.adapters.system_clock import SystemClock
+from twin.application.change_password import ChangePassword
 from twin.application.create_user import CreateUser
 from twin.application.ports.identity_provider import IdentityProvider
 from twin.application.sessions import Sessions
@@ -45,13 +46,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     # One object plays both ports: it issues access tokens and reads them back.
     app.state.authenticator = tokens
     app.state.sign_up = SignUp(CreateUser(app.state.uow_factory, clock), hasher)
+    # One limiter for logins and for change-password, keyed differently.
+    limiter = MemoryLoginLimiter(clock)
     app.state.sessions = Sessions(
         app.state.uow_factory,
         clock,
         hasher,
         tokens,
-        MemoryLoginLimiter(clock),
+        limiter,
         timedelta(days=settings.refresh_token_days),
+    )
+    app.state.change_password = ChangePassword(
+        app.state.uow_factory, clock, hasher, limiter
     )
     create_user = CreateUser(app.state.uow_factory, clock)
     app.state.sign_in_with_google = SignInWithGoogle(app.state.uow_factory, create_user)

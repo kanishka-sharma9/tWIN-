@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field, SecretStr, field_validator
 
 from twin.adapters.api.csrf import require_csrf
 from twin.adapters.api.dependencies import get_current_user
+from twin.application.change_password import ChangePassword
 from twin.application.sessions import Sessions, SessionTokens
 from twin.application.sign_up import SignUp
 from twin.domain.email import Email, InvalidEmail
@@ -39,6 +40,14 @@ class LoginRequest(BaseModel):
     password: SecretStr = Field(max_length=1024)
 
 
+class ChangePasswordRequest(BaseModel):
+    # The current password is not length-checked: a wrong one is a 401, not a format error.
+    current_password: SecretStr = Field(max_length=1024)
+    # Length rules (10 to 128) are applied by the use case and answer 422 weak_password;
+    # the cap here only bounds the work an oversized body can cause.
+    new_password: SecretStr = Field(max_length=1024)
+
+
 class UserOut(BaseModel):
     id: UUID
     email: str
@@ -63,6 +72,11 @@ def _user_out(user: User) -> UserOut:
 def get_sign_up(request: Request) -> SignUp:
     sign_up: SignUp = request.app.state.sign_up
     return sign_up
+
+
+def get_change_password(request: Request) -> ChangePassword:
+    change_password: ChangePassword = request.app.state.change_password
+    return change_password
 
 
 def get_sessions(request: Request) -> Sessions:
@@ -144,3 +158,19 @@ def logout(
 @router.get("/me")
 def me(user: Annotated[User, Depends(get_current_user)]) -> UserOut:
     return _user_out(user)
+
+
+@router.post("/change-password", status_code=204)
+def change_password(
+    body: ChangePasswordRequest,
+    user: Annotated[User, Depends(get_current_user)],
+    use_case: Annotated[ChangePassword, Depends(get_change_password)],
+    refresh_token: Annotated[str | None, Cookie()] = None,
+) -> None:
+    """Change the password; the login session of this request stays, all others end."""
+    use_case.execute(
+        user.id,
+        body.current_password.get_secret_value(),
+        body.new_password.get_secret_value(),
+        use_case.family_of(user.id, refresh_token),
+    )

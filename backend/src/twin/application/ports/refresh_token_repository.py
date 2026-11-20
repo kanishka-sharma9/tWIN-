@@ -18,3 +18,9 @@ class RefreshTokenRepository(Protocol):
     def revoke_family(self, family_id: UUID, at: datetime) -> None:
         """Revoke every token of the family that is not revoked yet."""
         ...
+
+    def revoke_user_families(
+        self, user_id: UUID, except_family: UUID | None, at: datetime
+    ) -> None:
+        """Revoke every live token of the user, except those of `except_family` (if given)."""
+        ...

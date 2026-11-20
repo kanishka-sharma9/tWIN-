@@ -10,6 +10,18 @@ class WeakPassword(DomainError):
     code = "weak_password"
 
 
+class WrongPassword(DomainError):
+    """The current password given when changing it does not match (the caller is logged in)."""
+
+    code = "wrong_password"
+
+
+class NoPassword(DomainError):
+    """The account has no password (made with Google), so there is none to change."""
+
+    code = "no_password"
+
+
 @dataclass(frozen=True)
 class Password:
     """A password that satisfies the rules (D-056): 10 to 128 characters, nothing else.

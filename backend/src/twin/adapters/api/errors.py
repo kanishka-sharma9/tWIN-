@@ -16,7 +16,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from twin.domain.email import InvalidEmail
 from twin.domain.errors import DomainError
 from twin.domain.identity import AccountExists, IdentityRejected, ProviderDisabled
-from twin.domain.password import WeakPassword
+from twin.domain.password import NoPassword, WeakPassword, WrongPassword
 from twin.domain.session import (
     CsrfFailed,
     InvalidCredentials,
@@ -54,6 +54,8 @@ STATUS_BY_ERROR: dict[type[DomainError], int] = {
     ProviderDisabled: 404,
     IdentityRejected: 400,
     AccountExists: 409,
+    WrongPassword: 401,
+    NoPassword: 409,
 }
 
 _CODE_BY_STATUS = {
