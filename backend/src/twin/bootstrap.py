@@ -18,10 +18,20 @@ from twin.adapters.system_clock import SystemClock
 from twin.application.change_password import ChangePassword
 from twin.application.create_user import CreateUser
 from twin.application.ports.identity_provider import IdentityProvider
+from twin.application.reset_password import ResetPassword
 from twin.application.sessions import Sessions
 from twin.application.sign_in_with_google import SignInWithGoogle
 from twin.application.sign_up import SignUp
 from twin.settings import Settings
+
+
+def create_reset_password(settings: Settings | None = None) -> ResetPassword:
+    """The developer reset command's use case, wired like the API's (no JWT secret needed)."""
+    settings = settings or Settings()
+    session_factory = create_session_factory(create_db_engine(settings.database_url))
+    return ResetPassword(
+        lambda: SqlUnitOfWork(session_factory), SystemClock(), Argon2PasswordHasher()
+    )
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
