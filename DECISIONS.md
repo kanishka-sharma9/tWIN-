@@ -68,6 +68,7 @@ Every product and technical decision for the dual-name file explorer, with the o
 | D-060 | E02-S02 build choices: signup validation, hasher and logging | Proposed |
 | D-062 | E02-S04 build choices: Google flow, state cookie, ID token checks and failures | Proposed |
 | D-063 | E02-S07 build choices: change-password order of checks, kept session, shared limiter, Swagger bearer | Proposed |
+| D-064 | E02-S08 build choices: set-password reads, errors and help | Proposed |
 
 ---
 
@@ -986,3 +987,24 @@ Gaps that no earlier decision covered, put to the owner on 2026-11-11.
 - Without a cookie: end every session (chosen, the conservative reading); refuse the request (blocks API clients that keep the refresh token elsewhere).
 
 **Consequences:** E02-S06's account screen sends the request with the bearer token from memory and the browser sends the refresh cookie on its own (cookie path `/api/auth` matches). Immediate cut-off of other devices' access tokens would need a token version or a revocation list; not done.
+
+### D-064 E02-S08 build choices: set-password reads, errors and help
+
+**Status:** Proposed (decided while building E02-S08 under the instruction to proceed without questions; D-031 and D-056 hold the rules it applies)
+
+**Decision:**
+- `twin set-password <email>` takes exactly one argument; any other count prints `Usage: twin set-password <email>` and exits 1.
+- The password comes from a no-echo prompt asked twice when stdin is a terminal, otherwise from the first line of stdin (trailing newline removed, nothing else trimmed). Empty stdin is refused with `No password given on standard input.`
+- Checks run in this order: the email is well formed (`Enter a valid email address.` otherwise, as in sign-up), the account exists, the account has a password, the new password satisfies 10 to 128 characters. The use case is `ResetPassword` in `application/reset_password.py`; `adapters/cli.py` turns a `DomainError` into one line on standard error and exit code 1.
+- The email is matched ignoring case, and the success line prints the email as stored.
+- Every refresh-token family of the account is revoked, none kept (unlike change-password there is no current session). Access tokens already issued live on for up to 15 minutes, as in D-063.
+- No rate limit: the command needs shell access to the database, which already means full control.
+- `create_reset_password` in `bootstrap.py` wires the use case and needs no `TWIN_JWT_SECRET`, so a password can be reset without configuring the API.
+- `twin --help` / `-h` prints the usage of the server, `export-openapi` and `set-password` (before, any argument other than `export-openapi` was an error).
+
+**Options considered**
+
+- Password source: prompt or stdin (chosen, keeps it out of shell history and `ps`); a `--password` flag (leaks into both); an environment variable (leaks into child processes).
+- Revoke every family (chosen, the story says every device logs in again); keep one (there is no current session to keep).
+
+**Consequences:** E10-S03 (email reset) can reuse `ResetPassword` behind a token check.
