@@ -83,7 +83,7 @@ export function SignUp() {
 					<p className="text-sm">
 						<Link
 							to="/login"
-							className="text-primary underline underline-offset-4"
+							className="text-primary inline-flex min-h-11 items-center underline underline-offset-4"
 						>
 							Log in
 						</Link>{" "}
@@ -108,7 +108,10 @@ export function SignUp() {
 			<GoogleSignIn />
 			<p className="mt-5 text-center text-sm">
 				Already have an account?{" "}
-				<Link to="/login" className="text-primary underline underline-offset-4">
+				<Link
+					to="/login"
+					className="text-primary inline-flex min-h-11 items-center underline underline-offset-4"
+				>
 					Log in
 				</Link>
 			</p>

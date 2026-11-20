@@ -74,7 +74,7 @@ export function Login() {
 				New here?{" "}
 				<Link
 					to="/signup"
-					className="text-primary underline underline-offset-4"
+					className="text-primary inline-flex min-h-11 items-center underline underline-offset-4"
 				>
 					Sign up
 				</Link>
