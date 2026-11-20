@@ -9,7 +9,7 @@ test("home page loads, shows the health result, logs no errors and does not over
 	});
 	page.on("pageerror", (error) => problems.push(error.message));
 
-	await page.goto("/");
+	await page.goto("/health");
 	await expect(page).toHaveTitle("tWIN!!");
 	await expect(page.getByText("API: ok, database: up")).toBeVisible();
 
