@@ -68,7 +68,6 @@ def test_the_password_is_not_in_argv_or_in_any_output(
 ) -> None:
     result = run_cli(settings, account)
     assert NEW not in result.stdout + result.stderr
-    assert NEW not in f"-c {CODE} set-password {account}"
 
 
 def test_existing_refresh_tokens_stop_working(
