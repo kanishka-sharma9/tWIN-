@@ -72,7 +72,7 @@ export async function authedFetch(request: Request): Promise<Response> {
 }
 
 // Absolute, because `Request` needs a full URL outside the browser (tests run in Node).
-const baseUrl =
+export const baseUrl =
 	typeof location === "undefined" ? "http://localhost" : location.origin;
 
 export const api = createClient<paths>({ baseUrl, fetch: authedFetch });
