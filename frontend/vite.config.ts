@@ -11,7 +11,9 @@ export default defineConfig({
 	server: {
 		port: 5173,
 		// `/api` goes to the backend, so development needs no CORS setup.
-		proxy: { "/api": "http://127.0.0.1:8000" },
+		// The object form keeps the browser's Host header (the string form rewrites it), which the
+		// API's CSRF check compares with `Origin` on the refresh and logout routes.
+		proxy: { "/api": { target: "http://127.0.0.1:8000" } },
 	},
 	test: {
 		environment: "jsdom",
