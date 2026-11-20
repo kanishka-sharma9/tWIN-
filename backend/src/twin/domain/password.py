@@ -22,6 +22,12 @@ class NoPassword(DomainError):
     code = "no_password"
 
 
+class NoSuchAccount(DomainError):
+    """No account has the email given to the developer reset command."""
+
+    code = "no_such_account"
+
+
 @dataclass(frozen=True)
 class Password:
     """A password that satisfies the rules (D-056): 10 to 128 characters, nothing else.
