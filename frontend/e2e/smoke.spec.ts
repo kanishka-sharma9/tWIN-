@@ -5,7 +5,12 @@ test("home page loads, shows the health result, logs no errors and does not over
 }) => {
 	const problems: string[] = [];
 	page.on("console", (message) => {
-		if (message.type() === "error") problems.push(message.text());
+		// The app asks the API for a session on every load; for a signed-out visitor that
+		// refresh answers 401 and the browser logs it. That is expected, not a problem.
+		const expectedSignedOut401 = message.text().includes("status of 401");
+		if (message.type() === "error" && !expectedSignedOut401) {
+			problems.push(message.text());
+		}
 	});
 	page.on("pageerror", (error) => problems.push(error.message));
 
