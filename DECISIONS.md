@@ -69,6 +69,7 @@ Every product and technical decision for the dual-name file explorer, with the o
 | D-062 | E02-S04 build choices: Google flow, state cookie, ID token checks and failures | Proposed |
 | D-063 | E02-S07 build choices: change-password order of checks, kept session, shared limiter, Swagger bearer | Proposed |
 | D-064 | E02-S08 build choices: set-password reads, errors and help | Proposed |
+| D-065 | E02-S06 build choices: auth state, routes, messages and dev proxy | Proposed |
 
 ---
 
@@ -1033,3 +1034,26 @@ Gaps that no earlier decision covered, put to the owner on 2026-11-11.
 - Revoke every family (chosen, the story says every device logs in again); keep one (there is no current session to keep).
 
 **Consequences:** E10-S03 (email reset) can reuse `ResetPassword` behind a token check.
+
+### D-065 E02-S06 build choices: auth state, routes, messages and dev proxy
+
+**Status:** Proposed (decided while building E02-S06 under the instruction to proceed without questions; D-029, D-030, D-042 and D-043 hold the rules it applies)
+
+**Decision:**
+- The access token lives in a module variable of the E01-S06 client (D-029), never in web storage. `AuthProvider` asks `POST /api/auth/refresh` once on load; `refreshSession()` shares one in-flight request, because refresh tokens rotate and React StrictMode mounts twice in development.
+- Refresh and logout use plain `fetch` (with `X-Requested-With: twin`), not the client, so a 401 from them cannot start another refresh. Login and sign-up go through the client, so a wrong password also makes one harmless refresh attempt that fails.
+- Logout clears local state even if the API call fails.
+- Routes: `/signup` and `/login` (signed-in visitors go to `/`), `/` and `/account` (signed-out visitors go to `/login`). The E01 health page moved to `/health`; the smoke test follows it.
+- Error text comes from one code-to-message table in `errors.ts`. `rate_limited` adds the wait from `details.retry_after` (the client copies the `Retry-After` header into it when the body has none). Sign-up field errors from `details.fields` use fixed texts ("Enter a valid email address.") rather than the pydantic wording of the server.
+- Screens use `noValidate`: the server is the one validator, and its answers fill the same message slots as everything else.
+- Change password asks for the new password twice; a mismatch is caught in the browser without a request.
+- The Vite dev proxy uses the object form `{ target }`, because the string form rewrites `Host`, and the API CSRF check compares `Origin` with `Host` on refresh and logout.
+- The signed-out refresh on every load shows a 401 line in the browser console; the smoke test ignores exactly that message.
+
+**Options considered**
+
+- Token storage: memory (chosen, D-029); `sessionStorage` (survives reload but readable by any script).
+- Refresh on load: always (chosen, the HttpOnly cookie cannot be read to know if a session exists); a non-HttpOnly "logged in" hint cookie (extra state to keep in step).
+- Moving the health page to `/health` (chosen, `/` is now the vault); keeping it on `/` for signed-out visitors (mixes two purposes).
+
+**Consequences:** E08-S01 replaces `AppShell` and `Home` and keeps the guards. Deployment behind a proxy must keep the browser `Host` (or the same origin) for refresh and logout to pass the CSRF check.

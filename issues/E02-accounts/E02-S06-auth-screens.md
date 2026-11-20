@@ -1,7 +1,7 @@
 # E02-S06 Sign-up, login and account screens
 
 - **Epic:** E02 Accounts and login
-- **Status:** Ready
+- **Status:** Done
 - **Depends on:** E02-S03, E02-S04, E02-S07, E01-S05, E01-S06
 - **Decisions:** D-010, D-013, D-017, D-029, D-030, D-042, D-043, D-045, D-046
 - **Flows:** FLOWS.md 2, 3.3
