@@ -55,9 +55,8 @@ describe("Account", () => {
 	});
 
 	it("wrong_password: shows the message under the current password", async () => {
-		mockApi({
+		const fetchMock = mockApi({
 			...signedInServer(),
-			// 401 also triggers the client's one refresh, which succeeds, then the retry.
 			"POST /api/auth/change-password": () =>
 				Promise.resolve(
 					new Response(JSON.stringify(errorBody("wrong_password", "x")), {
@@ -71,6 +70,11 @@ describe("Account", () => {
 		expect(
 			await screen.findByText("The current password is not correct."),
 		).toBeInTheDocument();
+		// Sent once: a wrong password must not trigger a refresh and a resend.
+		const sent = fetchMock.mock.calls.filter(([r]) =>
+			(r as Request).url.endsWith("/change-password"),
+		);
+		expect(sent).toHaveLength(1);
 	});
 
 	it("weak_password: shows the message under the new password", async () => {
