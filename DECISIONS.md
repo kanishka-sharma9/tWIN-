@@ -883,3 +883,29 @@ Gaps that no earlier decision covered, put to the owner on 2026-11-11.
 - **Drop the type-aware rules:** removes the reason for ESLint in D-038.
 
 **Consequences:** move to a newer TypeScript once both typescript-eslint and openapi-typescript support it; the change is one line in `frontend/package.json`.
+
+### D-055 Vaults separate from users; one root folder per vault
+
+**Status:** Proposed (E02-S01)
+
+**Decision:** `vaults` is its own table, one per user for now (unique owner), and every vault has exactly one root folder row in `folders`. E04-S01 extends `folders`.
+
+**Options considered:** vault columns on `users` (simpler, blocks shared vaults later); separate table (chosen, small cost now).
+
+### D-056 Password rules
+
+**Status:** Proposed from the owner's choice during E02 planning
+
+**Decision:** minimum 10 and maximum 128 characters, no composition rules, Argon2id hashing with library defaults.
+
+### D-057 Token lifetimes
+
+**Status:** Proposed from the owner's choice during E02 planning
+
+**Decision:** access token 15 minutes, refresh token 30 days rotated on every use with reuse detection, no remember-me.
+
+### D-058 Google sign-in is optional configuration
+
+**Status:** Proposed
+
+**Decision:** Google sign-in is enabled only when `TWIN_GOOGLE_CLIENT_ID`, `TWIN_GOOGLE_CLIENT_SECRET` and `TWIN_GOOGLE_REDIRECT_URI` are set; the owner supplies the OAuth client. Email and password never depends on it. Automated tests use a fake provider.

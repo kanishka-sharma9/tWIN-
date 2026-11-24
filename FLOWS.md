@@ -79,7 +79,7 @@ Decisions: D-029, D-030. Stories: E02-S03, E02-S06.
 3. On failure the response is the same generic "wrong email or password" whether or not the email exists, and the attempt counts toward a rate limit.
 4. On success the API returns a short-lived access token and sets a refresh token in an httpOnly cookie. The refresh token is recorded in the database.
 5. The web app keeps the access token in memory and sends it with every request. The API reads the user and vault from it.
-6. When the access token expires, or the page is reloaded, the web app exchanges the refresh cookie for a new access token. The refresh token is replaced each time it is used.
+6. When the access token expires, or the page is reloaded, the web app exchanges the refresh cookie for a new access token, sending the header X-Requested-With: twin (the CSRF check). The refresh token is replaced each time it is used, and reusing an old one revokes the whole login.
 7. If the refresh fails, the web app shows the login screen.
 8. Log out revokes the refresh token in the database and clears the cookie.
 
