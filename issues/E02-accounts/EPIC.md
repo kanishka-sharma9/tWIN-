@@ -1,6 +1,6 @@
 # E02 Accounts and login
 
-- **Status:** In progress
+- **Status:** Done
 - **Depends on:** E01
 
 ## Outcome
