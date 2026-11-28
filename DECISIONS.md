@@ -64,6 +64,7 @@ Every product and technical decision for the dual-name file explorer, with the o
 | D-052 | How the theme colours are applied | Accepted |
 | D-053 | Typeface, icon set, theme variant and API client libraries | Proposed |
 | D-054 | TypeScript pinned to 5.9 for typescript-eslint and openapi-typescript | Accepted |
+| D-059 | E02-S01 build choices: root folder name, credential rule, unit of work | Proposed |
 
 ---
 
@@ -909,3 +910,20 @@ Gaps that no earlier decision covered, put to the owner on 2026-11-11.
 **Status:** Proposed
 
 **Decision:** Google sign-in is enabled only when `TWIN_GOOGLE_CLIENT_ID`, `TWIN_GOOGLE_CLIENT_SECRET` and `TWIN_GOOGLE_REDIRECT_URI` are set; the owner supplies the OAuth client. Email and password never depends on it. Automated tests use a fake provider.
+### D-059 E02-S01 build choices: root folder name, credential rule, unit of work
+
+**Status:** Proposed (decided while building E02-S01 under the instruction to proceed without questions; D-055 to D-058 are on the plan branch)
+
+**Decision:**
+- Each vault root folder is named `Home`. It is the only folder with no parent, and a partial unique index allows one per vault.
+- A user must have a password hash or a Google subject (at least one), so a later account can hold both. `users.email` is stored as typed (trimmed) and made unique on `lower(email)`.
+- `CreateUser` runs through a `UnitOfWork` port, so user, vault and root folder are stored in one transaction. `get_current_vault` resolves the caller through a `UserAuthenticator` port; until E02-S03 the adapter authenticates nobody, so vault routes answer 401 `unauthorized`.
+- A token for a user with no vault is also 401, not 404, so an id cannot be probed.
+
+**Options considered**
+
+- Root name: `Home` (chosen, reads well in a breadcrumb); an empty name (needs special cases in every path display); `/`.
+- Credentials: at least one required (chosen); exactly one (blocks linking Google to a password account later).
+- Transaction: a `UnitOfWork` port (chosen, keeps the rule testable with fakes); each repository committing on its own (a failure could leave a user without a vault).
+
+**Consequences:** E04-S01 extends `folders`; E02-S03 replaces the null authenticator.
