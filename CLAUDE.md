@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Status
 
-Epic E01 (Foundation) is built: a FastAPI app with `GET /api/health`, PostgreSQL 18 with Alembic migrations, a Vite + React + TypeScript frontend with the oxblood/rose/cyan theme tokens, one API error shape and a typed client generated from the OpenAPI schema, and test harnesses for pytest, Vitest and Playwright. CI (`.github/workflows/ci.yml`) and the dev container (`.devcontainer/`) are in place. E02-S01 added the users, vaults and folders tables (migration 0002), `CreateUser` (user, vault and root folder in one transaction) and the `get_current_vault` dependency that scopes every later query; login arrives with E02-S03, so vault routes answer 401 until then. Update this file as the stories in `issues/` land.
+Epic E01 (Foundation) is built: a FastAPI app with `GET /api/health`, PostgreSQL 18 with Alembic migrations, a Vite + React + TypeScript frontend with the oxblood/rose/cyan theme tokens, one API error shape and a typed client generated from the OpenAPI schema, and test harnesses for pytest, Vitest and Playwright. CI (`.github/workflows/ci.yml`) and the dev container (`.devcontainer/`) are in place. E02-S01 added the users, vaults and folders tables (migration 0002), `CreateUser` (user, vault and root folder in one transaction) and the `get_current_vault` dependency that scopes every later query; `POST /api/auth/signup` (E02-S02) creates an account with an Argon2id-hashed password; login arrives with E02-S03, so vault routes answer 401 until then. Update this file as the stories in `issues/` land.
 
 ## What is being built
 

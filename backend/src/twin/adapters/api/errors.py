@@ -15,6 +15,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from twin.domain.email import InvalidEmail
 from twin.domain.errors import DomainError
+from twin.domain.password import WeakPassword
 from twin.domain.vault import EmailTaken, NotAuthenticated
 
 logger = logging.getLogger(__name__)
@@ -37,6 +38,7 @@ class ErrorResponse(BaseModel):
 STATUS_BY_ERROR: dict[type[DomainError], int] = {
     InvalidEmail: 422,
     EmailTaken: 409,
+    WeakPassword: 422,
     NotAuthenticated: 401,
 }
 
