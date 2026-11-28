@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router";
 import "@fontsource-variable/inter";
 import { App } from "@/App";
 import { QueryProvider } from "@/api/queryClient";
+import { AuthProvider } from "@/auth/AuthProvider";
 import "./index.css";
 
 const root = document.getElementById("root");
@@ -13,7 +14,9 @@ createRoot(root).render(
 	<StrictMode>
 		<QueryProvider>
 			<BrowserRouter>
-				<App />
+				<AuthProvider>
+					<App />
+				</AuthProvider>
 			</BrowserRouter>
 		</QueryProvider>
 	</StrictMode>,

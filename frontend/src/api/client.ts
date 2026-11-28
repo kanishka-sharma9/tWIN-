@@ -53,11 +53,26 @@ async function send(request: Request): Promise<Response> {
 	}
 }
 
+async function isCredentialRefusal(response: Response): Promise<boolean> {
+	try {
+		const body = (await response.clone().json()) as {
+			error?: { code?: string };
+		};
+		const code = body.error?.code;
+		return code === "wrong_password" || code === "invalid_credentials";
+	} catch {
+		return false;
+	}
+}
+
 /** Attaches the token; on a 401 refreshes once and retries the request once. */
 export async function authedFetch(request: Request): Promise<Response> {
 	const retry = request.clone();
 	const response = await send(request);
 	if (response.status !== 401) return response;
+	// A wrong password is not an expired token: refreshing and resending would count the
+	// attempt twice against the rate limit.
+	if (await isCredentialRefusal(response)) return response;
 
 	let token: string;
 	try {
@@ -72,7 +87,7 @@ export async function authedFetch(request: Request): Promise<Response> {
 }
 
 // Absolute, because `Request` needs a full URL outside the browser (tests run in Node).
-const baseUrl =
+export const baseUrl =
 	typeof location === "undefined" ? "http://localhost" : location.origin;
 
 export const api = createClient<paths>({ baseUrl, fetch: authedFetch });
