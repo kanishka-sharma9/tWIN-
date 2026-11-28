@@ -1,6 +1,7 @@
 from types import TracebackType
 from typing import Protocol, Self
 
+from twin.application.ports.refresh_token_repository import RefreshTokenRepository
 from twin.application.ports.user_repository import UserRepository
 from twin.application.ports.vault_repository import VaultRepository
 
@@ -10,6 +11,9 @@ class UnitOfWork(Protocol):
 
     @property
     def users(self) -> UserRepository: ...
+
+    @property
+    def refresh_tokens(self) -> RefreshTokenRepository: ...
 
     @property
     def vaults(self) -> VaultRepository: ...

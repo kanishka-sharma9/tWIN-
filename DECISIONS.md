@@ -945,3 +945,27 @@ Gaps that no earlier decision covered, put to the owner on 2026-11-11.
 - Email error: `validation_error` (chosen, as the story specifies); the domain `invalid_email` code (still raised by use cases called outside HTTP).
 
 **Consequences:** E02-S03 reuses `PasswordHasher.verify` and `needs_rehash` for login.
+
+### D-061 E02-S03 build choices: tokens, rotation, CSRF and rate limit
+
+**Status:** Proposed (decided while building E02-S03 under the instruction to proceed without questions; D-057 holds the token lifetimes)
+
+**Decision:**
+- Access token: JWT HS256 with `sub`, `vid`, `iat`, `exp`, signed with `TWIN_JWT_SECRET` (32+ characters; the API refuses to start without it). Expiry is judged against the app clock, only `HS256` is accepted, and `sub`, `exp` and `iat` are required. The vault is still looked up per request, so `vid` is informational.
+- Refresh token: 256-bit random string, stored only as its SHA-256 hash, in a family. Each use inserts a new token in the same family and marks the old one replaced. Presenting a replaced or revoked token revokes the whole family and answers 401 `invalid_refresh_token`; an expired or unknown one answers the same 401 without revoking. Rows are locked (`FOR UPDATE`) so two concurrent refreshes cannot both succeed.
+- Logout revokes the whole family of the presented token and always answers 204 (an unknown or missing cookie is ignored). It requires the same CSRF header as refresh, so another site cannot log a person out.
+- CSRF: header `X-Requested-With: twin` is required, and an `Origin` header, when present, must have the same host name as the `Host` header. The cookie is `SameSite=Lax`, `Path=/api/auth`, `Secure` when `TWIN_COOKIE_SECURE`.
+- Login: unknown email, wrong password, a malformed email and an account with no password all answer 401 `invalid_credentials`; an unknown email still runs one hash verify. The password is capped at 1024 characters on this route.
+- Rate limit: 5 failed logins per email and client address per 15 minutes, sliding window, 429 `rate_limited` with `Retry-After`. It is blocked even for the right password, and a successful login resets the count. Held in process memory behind the `LoginLimiter` port.
+- Signup also signs the person in (same response and cookie as login). The response `user` is `{id, email, has_password}`.
+- `twin export-openapi` uses a placeholder secret so CI can regenerate the schema.
+
+**Options considered**
+
+- Logout scope: whole family (chosen, one login session ends); only the presented token (same result with rotation, but leaves siblings if a replay raced).
+- Logout CSRF: required (chosen, costs nothing); exempt as the story only names refresh.
+- Limiter store: in memory (chosen, the story allows it for one process); PostgreSQL table (survives restarts, more code now).
+- Client address: the direct peer address. Behind a reverse proxy every person would share the proxy address, so deployment must pass the real address through (for example uvicorn `--proxy-headers` with a trusted proxy list) before this limit means anything.
+
+**Consequences:** E02-S06 sends the CSRF header on refresh and logout and keeps the access token in memory. Expired and revoked token rows are never deleted yet (see the follow-ups in the PR). A password change (E02-S07) should revoke the person's families.
+

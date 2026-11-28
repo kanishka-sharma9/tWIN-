@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # backend/src/twin/settings.py -> the repository root, where .env lives.
@@ -17,3 +18,9 @@ class Settings(BaseSettings):
     port: int = 8000
     # postgresql+psycopg://user:password@host:port/database; the default matches .env.example.
     database_url: str = "postgresql+psycopg://twin:twin@127.0.0.1:5432/twin"
+    # Signs access tokens (HS256); at least 32 characters. The app refuses to start without it.
+    jwt_secret: SecretStr | None = None
+    # Send the refresh cookie over HTTPS only. Set true wherever the site is served over HTTPS.
+    cookie_secure: bool = False
+    access_token_minutes: int = 15
+    refresh_token_days: int = 30

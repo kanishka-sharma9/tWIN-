@@ -1,36 +1,17 @@
 """POST /api/auth/signup (E02-S02), against the real test database."""
 
 import logging
-from collections.abc import Iterator
-from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
 from httpx import Response
-from sqlalchemy import create_engine, delete, select
+from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 
 from twin.adapters.persistence.models import FolderRow, UserRow, VaultRow
 from twin.settings import Settings
 
 PASSWORD = "S3cret-passphrase-Zq9"
-
-
-@pytest.fixture
-def email(settings: Settings) -> Iterator[str]:
-    """A unique address; the account it creates is removed afterwards."""
-    address = f"Ada-{uuid4().hex}@Example.com"
-    yield address
-    engine = create_engine(settings.database_url)
-    with Session(engine) as session, session.begin():
-        ids = list(session.scalars(select(UserRow.id).where(UserRow.email == address)))
-        vaults = list(
-            session.scalars(select(VaultRow.id).where(VaultRow.owner_id.in_(ids)))
-        )
-        session.execute(delete(FolderRow).where(FolderRow.vault_id.in_(vaults)))
-        session.execute(delete(VaultRow).where(VaultRow.owner_id.in_(ids)))
-        session.execute(delete(UserRow).where(UserRow.id.in_(ids)))
-    engine.dispose()
 
 
 def signup(client: TestClient, email: str, password: str = PASSWORD) -> Response:
@@ -47,7 +28,10 @@ def test_valid_sign_up_creates_user_and_vault(
     assert response.status_code == 201
     body = response.json()
     assert body["user"]["email"] == email
-    assert set(body) == {"user"}
+    assert body["user"]["has_password"] is True
+    assert body["token_type"] == "bearer"
+    assert body["access_token"]
+    assert "refresh_token=" in response.headers["set-cookie"]
     engine = create_engine(settings.database_url)
     with Session(engine) as session:
         user = session.scalars(select(UserRow).where(UserRow.email == email)).one()

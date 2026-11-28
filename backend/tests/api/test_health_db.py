@@ -6,9 +6,9 @@ from twin.bootstrap import create_app
 from twin.settings import Settings
 
 
-def test_health_reports_database_down_but_still_200() -> None:
-    unreachable = Settings(
-        database_url="postgresql+psycopg://twin:twin@127.0.0.1:1/twin"
+def test_health_reports_database_down_but_still_200(settings: Settings) -> None:
+    unreachable = settings.model_copy(
+        update={"database_url": "postgresql+psycopg://twin:twin@127.0.0.1:1/twin"}
     )
     with TestClient(create_app(unreachable)) as client:
         response = client.get("/api/health")
