@@ -101,6 +101,17 @@ uv run twin                       # API on http://127.0.0.1:8000/api/health
 
 The health endpoint answers `{"status": "ok", "database": "up"}`. Tests need the `db` container running; they use a separate `twin_test` database.
 
+## Reset a forgotten password
+
+There is no email in v1, so a developer resets a password from `backend/` (the database must be running):
+
+```bash
+uv run twin set-password ada@example.com    # asks for the new password twice, without echo
+printf 'a new long passphrase' | uv run twin set-password ada@example.com    # from a script
+```
+
+The password is never taken from the command line (it would end up in shell history and `ps`). It follows the sign-up rules (10 to 128 characters). Every device of that account must log in again. It refuses an unknown email and an account that signs in with Google, with exit code 1. `uv run twin --help` lists the commands.
+
 ## Google sign-in (optional)
 
 Off by default; email and password works without it. To switch it on, follow [docs/google-oauth-setup.md](docs/google-oauth-setup.md).
