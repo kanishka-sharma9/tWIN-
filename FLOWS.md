@@ -114,6 +114,8 @@ sequenceDiagram
     end
 ```
 
+Failures are redirects, since the person is in a browser: a bad or missing `state`, a refused code, an unverified email or a declined consent land on `/login?error=google_failed`; an email that already has an account lands on `/login?error=account_exists`. When Google is not configured the two routes answer 404 and the button is hidden (`GET /api/auth/providers`).
+
 Accounts are never linked automatically, and v1 has no setting to connect Google to a password account (D-030, D-042).
 
 ### 2.4 Change password

@@ -24,3 +24,17 @@ class Settings(BaseSettings):
     cookie_secure: bool = False
     access_token_minutes: int = 15
     refresh_token_days: int = 30
+
+    # Google sign-in is on only when all three are set (docs/google-oauth-setup.md).
+    google_client_id: str | None = None
+    google_client_secret: SecretStr | None = None
+    google_redirect_uri: str = "http://localhost:8000/api/auth/google/callback"
+
+    @property
+    def google_enabled(self) -> bool:
+        return bool(
+            self.google_client_id
+            and self.google_client_secret
+            and self.google_client_secret.get_secret_value()
+            and self.google_redirect_uri
+        )

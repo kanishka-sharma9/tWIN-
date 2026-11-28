@@ -70,9 +70,9 @@ def get_sessions(request: Request) -> Sessions:
     return sessions
 
 
-def _respond(
+def set_refresh_cookie(
     request: Request, response: Response, tokens: SessionTokens
-) -> TokenResponse:
+) -> None:
     settings: Settings = request.app.state.settings
     response.set_cookie(
         REFRESH_COOKIE,
@@ -84,6 +84,12 @@ def _respond(
         secure=settings.cookie_secure,
     )
     response.headers["Cache-Control"] = "no-store"
+
+
+def _respond(
+    request: Request, response: Response, tokens: SessionTokens
+) -> TokenResponse:
+    set_refresh_cookie(request, response, tokens)
     return TokenResponse(
         access_token=tokens.access_token,
         expires_in=tokens.expires_in,
