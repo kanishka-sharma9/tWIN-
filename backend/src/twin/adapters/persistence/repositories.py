@@ -89,6 +89,13 @@ class SqlUserRepository:
         )
         return _user(row) if row else None
 
+    def set_password_hash(self, user_id: UUID, password_hash: str) -> None:
+        self._session.execute(
+            update(UserRow)
+            .where(UserRow.id == user_id)
+            .values(password_hash=password_hash)
+        )
+
 
 class SqlRefreshTokenRepository:
     def __init__(self, session: Session) -> None:
@@ -132,6 +139,19 @@ class SqlRefreshTokenRepository:
                 RefreshTokenRow.revoked_at.is_(None),
             )
             .values(revoked_at=at)
+        )
+
+    def revoke_user_families(
+        self, user_id: UUID, except_family: UUID | None, at: datetime
+    ) -> None:
+        conditions = [
+            RefreshTokenRow.user_id == user_id,
+            RefreshTokenRow.revoked_at.is_(None),
+        ]
+        if except_family is not None:
+            conditions.append(RefreshTokenRow.family_id != except_family)
+        self._session.execute(
+            update(RefreshTokenRow).where(*conditions).values(revoked_at=at)
         )
 
 

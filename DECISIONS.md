@@ -67,6 +67,7 @@ Every product and technical decision for the dual-name file explorer, with the o
 | D-059 | E02-S01 build choices: root folder name, credential rule, unit of work | Proposed |
 | D-060 | E02-S02 build choices: signup validation, hasher and logging | Proposed |
 | D-062 | E02-S04 build choices: Google flow, state cookie, ID token checks and failures | Proposed |
+| D-063 | E02-S07 build choices: change-password order of checks, kept session, shared limiter, Swagger bearer | Proposed |
 
 ---
 
@@ -990,3 +991,23 @@ Gaps that no earlier decision covered, put to the owner on 2026-11-11.
 - Failure form: redirect to login (chosen, the person is mid-navigation); JSON error (unreadable in a browser tab).
 
 **Consequences:** E02-S06 reads `?error=` on `/login`, shows the Google button when `/api/auth/providers` says so, and calls `/api/auth/refresh` after the redirect to `/`. Real Google has not been exercised; the owner must create the client (`docs/google-oauth-setup.md`) and try one sign-in by hand.
+
+### D-063 E02-S07 build choices: change-password order of checks, kept session, shared limiter, Swagger bearer
+
+**Status:** Proposed (decided while building E02-S07 under the instruction to proceed without questions; D-029, D-042 and D-056 hold the rules it applies)
+
+**Decision:**
+- `POST /api/auth/change-password` (bearer) answers 204. Order of checks: rate limit, then the account has a password (`409 no_password`), then the current password (`401 wrong_password`), then the new one against the 10 to 128 rule (`422 weak_password`). The current password is verified before the new one is checked, so a wrong current password never reveals anything about the new one.
+- The hash change and the revocation of every other login session happen in one unit of work. The session that stays logged in is the one whose refresh cookie accompanies the request (`ChangePassword.family_of` finds its family, and only if the token belongs to the caller and is not spent). Without a valid cookie, every session of the person ends, including the caller's; the access token in hand keeps working until it expires (15 minutes).
+- Wrong current passwords count against the same in-memory limiter as logins, keyed `change-password|<user id>` (5 failures in 15 minutes, then `429 rate_limited` with `Retry-After`). A correct password clears the count. The key is the account, not the address, because the caller is already authenticated.
+- The password fields are `SecretStr`, capped at 1024 characters in the request model only to bound the work a body can cause; the 10 to 128 rule is the domain's, so 129 characters answers `weak_password`, not `validation_error`.
+- The bearer scheme (`HTTPBearer(auto_error=False)`) is now declared on the authenticated routes so Swagger UI shows an Authorize button; it never rejects a request itself. Swagger UI hides `Authorization` header parameters, so without a declared scheme the docs page could not call any bearer route.
+- The access tokens already issued to other devices stay valid until they expire (at most 15 minutes); only refresh is cut off, as the story says.
+
+**Options considered**
+
+- Keep-session signal: the refresh cookie (chosen, no new field for clients, matches how logout finds its session); a session id inside the access token (needs a token change in S03).
+- Limiter key: user id (chosen); user id plus address (a thief with a stolen access token could rotate addresses).
+- Without a cookie: end every session (chosen, the conservative reading); refuse the request (blocks API clients that keep the refresh token elsewhere).
+
+**Consequences:** E02-S06's account screen sends the request with the bearer token from memory and the browser sends the refresh cookie on its own (cookie path `/api/auth` matches). Immediate cut-off of other devices' access tokens would need a token version or a revocation list; not done.
